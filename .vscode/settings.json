@@ -2,9 +2,7 @@
     "files.associations": {
         "*.s": "arm",
         "*.dis": "arm",
-        "gpio.h": "c",
-        "rcc.h": "c",
-        "string.h": "c",
-        "uart.h": "c"
+        "*.h": "c",
+        "*.c": "c",
     }
 }
