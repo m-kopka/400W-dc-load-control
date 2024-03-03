@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/stm32f4xx-hal/include/**",
-                "${workspaceFolder}/os-kernel/include/**"
+                "${workspaceFolder}/mini-kernel/include/**"
             ],
             "defines": [],
             "macFrameworkPath": [],

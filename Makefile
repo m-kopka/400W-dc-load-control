@@ -12,10 +12,10 @@ CPU = cortex-m4
 TARGET = build/build
 
 # list folders containing C and Assembly source files here
-SRC_DIRS = . stm32f411-hal/src/ stm32f411-hal/src/* os-kernel/src/ os-kernel/src/* src src/*
+SRC_DIRS = . stm32f411-hal/src/ stm32f411-hal/src/* mini-kernel/src/ mini-kernel/src/* src src/*
 
 # list folders containing header files here
-INC_DIRS = . stm32f411-hal/include/ os-kernel/include/ ./include/
+INC_DIRS = . stm32f411-hal/include/ mini-kernel/include/ ./include/
 
 # linker script path
 LINKER_SCRIPT = stm32f411-hal/stm32f4xx_ls.ld
