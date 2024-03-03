@@ -6,6 +6,13 @@
 #define HSE_OSC_FREQUENCY_HZ    25000000        // High Speed External oscillator frequency [Hz]
 #define CORE_CLOCK_FREQUENCY_HZ 96000000        // core clock frequency [Hz]
 
+//---- DEBUG UART ------------------------------------------------------------------------------------------------------------------------------------------------
+
+#define DEBUG_UART              USART1
+#define DEBUG_UART_BAUD         115200
+#define DEBUG_UART_TX_GPIO      GPIOB, 6
+#define DEBUG_UART_RX_GPIO      GPIOB, 7
+
 //---- LEDS ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #define LED_GREEN_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOC

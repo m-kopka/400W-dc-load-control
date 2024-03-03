@@ -1,3 +1,9 @@
+
+/*
+ *  400W electronic load control board firmware
+ *  Martin Kopka 2024
+*/
+
 #include "common_defs.h"
 
 void led_blink_task(void);
@@ -18,6 +24,7 @@ int main() {
     gpio_set_mode(GPIOC, 14, GPIO_MODE_OUTPUT);
 
     kernel_init(HLCK_frequency_hz);
+    kernel_create_task(debug_uart_task, 2000);
     kernel_create_task(led_blink_task, 1000);
     kernel_create_task(heartbeat_task, 5000);
     kernel_start();
