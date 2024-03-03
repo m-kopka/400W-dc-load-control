@@ -1,0 +1,3 @@
+[submodule "stm32f411-hal"]
+	path = stm32f411-hal
+	url = https://github.com/m-kopka/stm32f411-hal.git
