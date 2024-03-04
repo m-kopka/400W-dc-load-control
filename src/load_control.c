@@ -1,6 +1,6 @@
 #include "load_control.h"
 #include "iset_dac.h"
-
+#include "internal_isen.h"
 
 void load_control_task(void) {
 
@@ -18,6 +18,7 @@ void load_control_task(void) {
     gpio_set_mode(LOAD_EN_R_GPIO, GPIO_MODE_OUTPUT);
     
     iset_dac_init();
+    internal_isen_init();
 
     while (1) {
 

@@ -4,6 +4,7 @@
 #include "load_control.h"
 #include "fan_control.h"
 #include "temp_sensors.h"
+#include "internal_isen.h"
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -156,6 +157,33 @@ void shell_update(char *buffer) {
             debug_print_int(current);
             debug_print(" mA.\n");
         }
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // prints total load current
+    if (SHELL_CMD("isen")) {
+
+        // just print the sum of internal currents for now
+        debug_print("load current: ");
+        debug_print_int(internal_isen_read(CURRENT_L1) + internal_isen_read(CURRENT_L2) + internal_isen_read(CURRENT_R1) + internal_isen_read(CURRENT_R2));
+        debug_print("mA\n");
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // prints all internal current sink currents
+    if (SHELL_CMD("isen-internal")) {
+
+        debug_print("i(L1): ");
+        debug_print_int(internal_isen_read(CURRENT_L1));
+        debug_print("mA\ni(L2): ");
+        debug_print_int(internal_isen_read(CURRENT_L2));
+        debug_print("mA\ni(R1): ");
+        debug_print_int(internal_isen_read(CURRENT_R1));
+        debug_print("mA\ni(R2): ");
+        debug_print_int(internal_isen_read(CURRENT_R2));
+        debug_print("mA\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
