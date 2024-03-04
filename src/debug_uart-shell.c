@@ -72,7 +72,7 @@ void shell_update(char *buffer) {
 
             fan_set_speed_override(speed);
 
-            debug_print("fan speed set to ");
+            debug_print("fan speed override set to ");
             debug_print(args[1]);
             debug_print(".\n");
         } 
@@ -97,8 +97,6 @@ void shell_update(char *buffer) {
 
     // returns the power transistor temperatures
     else if (SHELL_CMD("temp")) {
-
-        temp_sensor_init();     // nahradit
 
         for (int sensor = 0; sensor < 2; sensor++) {
 

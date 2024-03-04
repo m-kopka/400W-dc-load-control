@@ -52,6 +52,14 @@
 #define ISET_DAC_SPI_MOSI_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOA
 #define ISET_DAC_SPI_MOSI_GPIO          GPIOA, 7
 
+//---- POWER BOARD ENABLE GPIOS ----------------------------------------------------------------------------------------------------------------------------------
+
+#define LOAD_EN_L_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOA
+#define LOAD_EN_L_GPIO          GPIOA, 9
+
+#define LOAD_EN_R_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOC
+#define LOAD_EN_R_GPIO          GPIOC, 2
+
 //---- INTERNAL ADC CURRENT SENSE --------------------------------------------------------------------------------------------------------------------------------
 
 #define I_SEN_L1_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOA
