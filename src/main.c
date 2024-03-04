@@ -5,6 +5,7 @@
 */
 
 #include "common_defs.h"
+#include "fan_control.h"
 
 void led_blink_task(void);
 void heartbeat_task(void);
@@ -27,6 +28,7 @@ int main() {
     kernel_create_task(debug_uart_task, 2000);
     kernel_create_task(led_blink_task, 1000);
     kernel_create_task(heartbeat_task, 5000);
+    kernel_create_task(fan_regulator_task, 100);
     kernel_start();
 
     while (1) {

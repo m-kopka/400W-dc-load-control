@@ -89,6 +89,7 @@
 #define FAN1_TACH_GPIO          GPIOB, 5
 #define FAN1_TACH_TIMER         TIM3
 #define FAN1_TACH_EXTI_LINE     EXTI_PR_PR5
+#define FAN1_TACH_IRQ_HANDLER   EXTI9_5_Handler
 
 #define FAN2_PWM_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOB
 #define FAN2_PWM_GPIO           GPIOB, 3
@@ -97,6 +98,7 @@
 #define FAN2_TACH_GPIO          GPIOA, 11
 #define FAN2_TACH_TIMER         TIM5
 #define FAN2_TACH_EXTI_LINE     EXTI_PR_PR11
+#define FAN2_TACH_IRQ_HANDLER   EXTI15_10_Handler
 
 #define FAN_PWM_FREQUENCY_HZ    25000       // PWM frequency of both fans [Hz]
 #define FAN_PWM_RELOAD_VAL      255         // PWM resolution of both fans

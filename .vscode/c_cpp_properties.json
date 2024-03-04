@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/stm32f4xx-hal/include/**",
+                "${workspaceFolder}/stm32f411-hal/include/**",
                 "${workspaceFolder}/mini-kernel/include/**"
             ],
             "defines": [],

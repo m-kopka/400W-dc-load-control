@@ -9,6 +9,7 @@
 #include "utils/string.h"
 
 #include "hw_config.h"
+#include "config.h"
 #include "kernel.h"
 #include "debug_uart.h"
 
