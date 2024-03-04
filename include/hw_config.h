@@ -80,6 +80,10 @@
 #define TEMP_SEN_R_GPIO         GPIOC, 0
 #define TEMP_SEN_R_ADC_CH       10
 
+#define TEMP_SEN_READ_ATTEMPTS      3
+#define TEMP_SEN_OPEN_THRESHOLD     30
+#define TEMP_SEN_SHORT_THRESHOLD    30
+
 //---- FANS ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #define FAN1_PWM_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOB

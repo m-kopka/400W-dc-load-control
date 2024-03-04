@@ -2,8 +2,7 @@
 #include "debug_uart.h"
 
 #include "fan_control.h"
-
-uint8_t a_fucking_global = 0;
+#include "temp_sensors.h"
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -53,11 +52,17 @@ void shell_update(char *buffer) {
         debug_print("zdar jak svina\n");
     }
 
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // resets the processor
     else if (SHELL_CMD("reboot")) {
 
         NVIC_SystemReset();
     }
 
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // sets the fan speeds
     else if (SHELL_CMD("fan")) {
 
         shell_assert_argc(1);
@@ -71,6 +76,47 @@ void shell_update(char *buffer) {
             debug_print(args[1]);
             debug_print(".\n");
         } 
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // returns the fan RPM
+    else if (SHELL_CMD("rpm")) {
+
+        for (int fan = 0; fan < 2; fan++) {
+
+            debug_print((fan == FAN1) ? "fan speeds FAN1: " : ", FAN2: ");
+            debug_print_int(fan_get_rpm(fan));
+            debug_print("rpm");
+        }
+
+        debug_print(".\n"); 
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // returns the power transistor temperatures
+    else if (SHELL_CMD("temp")) {
+
+        temp_sensor_init();     // nahradit
+
+        for (int sensor = 0; sensor < 2; sensor++) {
+
+            debug_print((sensor == TEMP_L) ? "temperatures L: " : ", R: ");
+
+            uint8_t temperature = temp_sensor_read(sensor);
+            temp_sensor_fault_t fault = temp_sensor_read_faults(sensor);
+
+            if (fault == TEMP_SEN_FAULT_OPEN) debug_print("OPEN");
+            if (fault == TEMP_SEN_FAULT_SHORT) debug_print("SHORT");
+            if (fault == TEMP_SEN_FAULT_NONE) {
+            
+                debug_print_int(temperature);
+                debug_print("'C");
+            }
+        }
+
+        debug_print(".\n"); 
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
