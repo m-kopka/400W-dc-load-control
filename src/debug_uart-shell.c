@@ -1,6 +1,7 @@
 #include "common_defs.h"
 #include "debug_uart.h"
 
+#include "load_control.h"
 #include "fan_control.h"
 #include "temp_sensors.h"
 
@@ -38,9 +39,9 @@ void shell_update(char *buffer) {
 
     while ((buffer[0] <= ' ') && (buffer[0] != '\0')) buffer++;
 
-    debug_print("> ");
-    debug_print(buffer);
-    debug_print("\n");
+    // debug_print("> ");
+    // debug_print(buffer);
+    // debug_print("\n");
 
     char *args[5];
     uint8_t argc = shell_parse_args(buffer, args, 5);
@@ -62,7 +63,7 @@ void shell_update(char *buffer) {
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    // sets the fan speeds
+    // sets the fan speed
     else if (SHELL_CMD("fan")) {
 
         shell_assert_argc(1);
@@ -115,6 +116,46 @@ void shell_update(char *buffer) {
         }
 
         debug_print(".\n"); 
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // enables or disables the load
+    if (SHELL_CMD("en")) {
+
+        shell_assert_argc(1);
+
+        if (COMPARE_ARG(1, "0")) {
+
+            load_set_enable(false);
+            debug_print("load disabled.\n");
+        }
+
+        else if (COMPARE_ARG(1, "1")) {
+
+            load_set_enable(true);
+            debug_print("load enabled.\n");
+        }
+
+        else debug_print("invalid argument.\n");
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // sets the load CC level
+    if (SHELL_CMD("iset")) {
+
+        shell_assert_argc(1);
+
+        int current = atoi(args[1]);
+        if (current >= 0 && current <= 10000) {     // limit to 10A for now
+
+            load_set_current((uint16_t)current);
+
+            debug_print("CC level set to ");
+            debug_print_int(current);
+            debug_print(" mA.\n");
+        }
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

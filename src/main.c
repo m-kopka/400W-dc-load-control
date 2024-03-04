@@ -5,10 +5,9 @@
 */
 
 #include "common_defs.h"
-#include "fan_control.h"
+#include "load_control.h"
 #include "temp_control.h"
 
-void led_blink_task(void);
 void heartbeat_task(void);
 
 int main() {
@@ -27,27 +26,14 @@ int main() {
 
     kernel_init(HLCK_frequency_hz);
     kernel_create_task(debug_uart_task, 2000);
-    kernel_create_task(led_blink_task, 1000);
     kernel_create_task(heartbeat_task, 5000);
     kernel_create_task(temp_control_task, 100);
+    kernel_create_task(load_control_task, 100);
     kernel_start();
 
     while (1) {
 
         NVIC_SystemReset();     // kernel crashed
-    }
-}
-
-void led_blink_task(void) {
-
-    rcc_enable_peripheral_clock(LED_GREEN_GPIO_CLOCK);
-    gpio_write(LED_GREEN_GPIO, HIGH);
-    gpio_set_mode(LED_GREEN_GPIO, GPIO_MODE_OUTPUT);
-
-    while (1) {
-
-        gpio_toggle(LED_GREEN_GPIO);
-        kernel_sleep_ms(500);
     }
 }
 
