@@ -65,6 +65,37 @@ void debug_print_int(int num) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// divides a number by 1000, converts it to string and sends it via DEBUG_UART with 2 decimal places
+void debug_print_int_dec(int num) {
+
+    char temp_buff[16];
+    itoa(num, temp_buff, 16, 10);
+
+    uint8_t total_places = strlen(temp_buff);
+    int i;
+
+    if (num < 1000) uart_putc(DEBUG_UART, '0');
+
+    for (i = 0; i < total_places - 3; i++) uart_putc(DEBUG_UART, temp_buff[i]);     // print integral part
+
+    uart_putc(DEBUG_UART, '.');     // decimal place
+
+    if (num < 100) uart_putc(DEBUG_UART, '0');
+
+    uart_putc(DEBUG_UART, temp_buff[i++]);  // print first decimal place
+
+    // if the value is 0, temp_buff[1] is not populated
+    if (num > 0) {
+
+        // round last digit to nearest value
+        if (temp_buff[i] < '5') uart_putc(DEBUG_UART, temp_buff[i++]);
+        else uart_putc(DEBUG_UART, temp_buff[i++] + 1);
+
+    } else uart_putc(DEBUG_UART, '0');
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 // converts a number to string in a hexadecimal format and sends it via DEBUG_UART
 void debug_print_int_hex(int num, uint8_t hex_digits) {
 

@@ -21,9 +21,9 @@ void temp_control_task(void) {
 
             //debug_print("OTP triggered!\n");
 
-        } else if (max_temp > 40) {
+        } else if (max_temp > 50) {
 
-            int16_t pwm = 7 * (max_temp - 40) + 30;
+            int16_t pwm = 11 * (max_temp - 50) + 30;
             if (pwm > 255) pwm = 255;
 
             fan_set_speed(pwm);

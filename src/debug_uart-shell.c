@@ -173,8 +173,8 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("vsen")) {
 
         debug_print("load input voltage: ");
-        debug_print_int(vi_sense_get_voltage());
-        debug_print("mV\n");
+        debug_print_int_dec(vi_sense_get_voltage());
+        debug_print(" V\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -183,8 +183,8 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("isen")) {
 
         debug_print("load current: ");
-        debug_print_int(vi_sense_get_current());
-        debug_print("mA\n");
+        debug_print_int_dec(vi_sense_get_current());
+        debug_print(" A\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -193,8 +193,8 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("psen")) {
 
         debug_print("load power: ");
-        debug_print_int(vi_sense_get_voltage() * vi_sense_get_current() / 1000);
-        debug_print("mW\n");
+        debug_print_int_dec(vi_sense_get_voltage() * vi_sense_get_current() / 1000);
+        debug_print(" W\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -214,7 +214,6 @@ void shell_update(char *buffer) {
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 
     else if (SHELL_CMD("vsensrc")) {
 
