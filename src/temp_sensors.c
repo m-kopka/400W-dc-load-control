@@ -39,7 +39,7 @@ void temp_sensor_init(void) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// measures a power transistor temperature and returns it; returns 255 in case of a fault
+// measures a power transistor temperature and returns it [°C]. Returns 255 in case of a fault
 uint8_t temp_sensor_read(temp_sensor_t sensor) {
 
     if (sensor != TEMP_L && sensor != TEMP_R) return 255;
@@ -58,6 +58,16 @@ uint8_t temp_sensor_read(temp_sensor_t sensor) {
     }
 
     return 255;       // measurement failed, return 255°C in case the callee doesn't read the fault flag
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// returns the raw 12bit ADC reading of a power transistor temperature (for calibration)
+uint16_t temp_sensor_read_raw(temp_sensor_t sensor) {
+
+    if (sensor != TEMP_L && sensor != TEMP_R) return 0;
+
+    return (adc_read((sensor == TEMP_L) ? TEMP_SEN_L_ADC_CH : TEMP_SEN_R_ADC_CH));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
