@@ -5,6 +5,7 @@
 #include "fan_control.h"
 #include "temp_sensors.h"
 #include "internal_isen.h"
+#include "vi_sense.h"
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -27,10 +28,16 @@ uint8_t shell_parse_args(char *input, char **args, uint8_t argc);
 // prints the shell header on startup
 void shell_print_header(void) {
 
-    debug_print("---------------------------------------------------\n");
-    debug_print("| DC Electronic Load\n");
-    debug_print("| Martin Kopka 2024\n");
-    debug_print("---------------------------------------------------\n");
+    debug_print("----------------------------------------------------------\n");
+    debug_print("  @@@@&        @@@@     @@@@   | 400W DC electronic load\n");
+    debug_print("  @@@@@&      @@@@@   @@@@     | Martin Kopka 2024\n");
+    debug_print("  @@@@@@@    @@@@@@ @@@@       | \n");
+    debug_print("  @@@ @@@@  @@@ @@@@@@@@       | \n");
+    debug_print("  @@@  @@@@@@@  @@@   @@@@     | \n");
+    debug_print("  @@@   @@@@@   @@@    @@@@@   | \n");
+    debug_print("  @@@    @@@    @@@      @@@@  | github.com/m-kopka\n");
+    debug_print("----------------------------------------------------------\n");
+    debug_print("(i) type \"help\" to show available commands.\n");
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -77,7 +84,8 @@ void shell_update(char *buffer) {
             debug_print("fan speed override set to ");
             debug_print(args[1]);
             debug_print(".\n");
-        } 
+
+        } else debug_print("fan speed range is <0 - 255>");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -122,7 +130,7 @@ void shell_update(char *buffer) {
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     // enables or disables the load
-    if (SHELL_CMD("en")) {
+    else if (SHELL_CMD("en")) {
 
         shell_assert_argc(1);
 
@@ -144,7 +152,7 @@ void shell_update(char *buffer) {
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     // sets the load CC level
-    if (SHELL_CMD("iset")) {
+    else if (SHELL_CMD("iset")) {
 
         shell_assert_argc(1);
 
@@ -161,19 +169,38 @@ void shell_update(char *buffer) {
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    // prints total load current
-    if (SHELL_CMD("isen")) {
+    // prints the load voltage
+    else if (SHELL_CMD("vsen")) {
 
-        // just print the sum of internal currents for now
+        debug_print("load input voltage: ");
+        debug_print_int(vi_sense_get_voltage());
+        debug_print("mV\n");
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // prints total load current
+    else if (SHELL_CMD("isen")) {
+
         debug_print("load current: ");
-        debug_print_int(internal_isen_read(CURRENT_L1) + internal_isen_read(CURRENT_L2) + internal_isen_read(CURRENT_R1) + internal_isen_read(CURRENT_R2));
+        debug_print_int(vi_sense_get_current());
         debug_print("mA\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+    // prints total load current
+    else if (SHELL_CMD("psen")) {
+
+        debug_print("load power: ");
+        debug_print_int(vi_sense_get_voltage() * vi_sense_get_current() / 1000);
+        debug_print("mW\n");
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
     // prints all internal current sink currents
-    if (SHELL_CMD("isen-internal")) {
+    else if (SHELL_CMD("isen-int")) {
 
         debug_print("i(L1): ");
         debug_print_int(internal_isen_read(CURRENT_L1));
@@ -187,6 +214,53 @@ void shell_update(char *buffer) {
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+    else if (SHELL_CMD("vsensrc")) {
+
+        if (argc == 0) {
+
+            debug_print("voltage sense source is ");
+            debug_print((vi_sense_get_vsen_source() == VSEN_SRC_INTERNAL) ? "internal" : "remote");
+            debug_print(".\n");
+
+        } else {
+
+            if (COMPARE_ARG(1, "internal")) {
+
+                vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
+                debug_print("voltage sense source set to internal\n");
+        
+            } else if (COMPARE_ARG(1, "remote")) {
+
+                vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
+                debug_print("voltage sense source set to remote\n");
+
+            }
+        }
+    
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // prints all internal current sink currents
+    else if (SHELL_CMD("help")) {
+
+        debug_print("list of available commands:\n");
+        debug_print("reboot - restart the system\n");
+        debug_print("fan <speed> - set the fan speed\n");
+        debug_print("rpm - read the fan speed\n");
+        debug_print("en <1 or 0> - enable or disable the load\n");
+        debug_print("iset <current_mA> - set the load CC level\n");
+        debug_print("vsen - read the load input voltage\n");
+        debug_print("isen - read the total load current\n");
+        debug_print("isen-int - read the individual current sink currents\n");
+        debug_print("psen - read the load power\n");
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    else debug_print("(!) unknown command.\n");
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

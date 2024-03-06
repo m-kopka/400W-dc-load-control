@@ -19,7 +19,7 @@ void temp_control_task(void) {
             gpio_write(LOAD_EN_L_GPIO, LOW);
             gpio_write(LOAD_EN_R_GPIO, LOW);
 
-            debug_print("OTP triggered!\n");
+            //debug_print("OTP triggered!\n");
 
         } else if (max_temp > 40) {
 

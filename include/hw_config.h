@@ -40,10 +40,10 @@
 
 //---- ISET DAC --------------------------------------------------------------------------------------------------------------------------------------------------
 
-#define ISET_DAC_SPI                    SPI1
-#define ISET_DAC_SPI_CLOCK              RCC_PERIPH_APB2_SPI1
-#define ISET_DAC_SPI_DIV                SPI_DIV_4                                   // PCLK2 = 96MHz, 96MHz / 4 = 24MHz
-#define ISET_DAC_GPIO_AF                GPIO_ALTERNATE_FUNCTION_SPI1_SPI2_SPI3
+#define ISET_DAC_SPI            SPI1
+#define ISET_DAC_SPI_CLOCK      RCC_PERIPH_APB2_SPI1
+#define ISET_DAC_SPI_DIV        SPI_DIV_4                                   // PCLK2 = 96MHz, 96MHz / 4 = 24MHz
+#define ISET_DAC_GPIO_AF        GPIO_ALTERNATE_FUNCTION_SPI1_SPI2_SPI3
 
 #define ISET_DAC_SPI_SS_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOA
 #define ISET_DAC_SPI_SS_GPIO            GPIOA, 4
@@ -51,6 +51,47 @@
 #define ISET_DAC_SPI_SCK_GPIO           GPIOA, 5
 #define ISET_DAC_SPI_MOSI_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOA
 #define ISET_DAC_SPI_MOSI_GPIO          GPIOA, 7
+
+//---- VSEN ADC --------------------------------------------------------------------------------------------------------------------------------------------------
+
+#define VSEN_ADC_SPI            SPI5
+#define VSEN_ADC_SPI_CLOCK      RCC_PERIPH_APB2_SPI5
+#define VSEN_ADC_SPI_DIV        SPI_DIV_4                                   // PCLK2 = 96MHz, 96MHz / 4 = 24MHz
+#define VSEN_ADC_GPIO_AF        GPIO_ALTERNATE_FUNCTION_SPI2_SPI3_SPI4_SPI5
+
+#define VSEN_ADC_SPI_SS_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOB
+#define VSEN_ADC_SPI_SS_GPIO            GPIOB, 1
+#define VSEN_ADC_SPI_SCK_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOB
+#define VSEN_ADC_SPI_SCK_GPIO           GPIOB, 0
+#define VSEN_ADC_SPI_MISO_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOA
+#define VSEN_ADC_SPI_MISO_GPIO          GPIOA, 12
+
+#define VSEN_ADC_CONVST_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOC
+#define VSEN_ADC_CONVST_GPIO            GPIOC, 5
+#define VSEN_SRC_GPIO_CLOCK             RCC_PERIPH_AHB1_GPIOB
+#define VSEN_SRC_GPIO                   GPIOB, 2
+
+#define VSEN_ADC_RAW_TO_MV_INT(raw)     (((raw) * 516 / 25) - 91)
+#define VSEN_ADC_RAW_TO_MV_REM(raw)     (((raw) * 2069 / 100) - 91)
+
+//---- ISEN ADC --------------------------------------------------------------------------------------------------------------------------------------------------
+
+#define ISEN_ADC_SPI            SPI2
+#define ISEN_ADC_SPI_CLOCK      RCC_PERIPH_APB1_SPI2
+#define ISEN_ADC_SPI_DIV        SPI_DIV_2                                   // PCLK1 = 48MHz, 48MHz / 2 = 24MHz
+#define ISEN_ADC_GPIO_AF        GPIO_ALTERNATE_FUNCTION_SPI1_SPI2_SPI3
+
+#define ISEN_ADC_SPI_SS_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOB
+#define ISEN_ADC_SPI_SS_GPIO            GPIOB, 12
+#define ISEN_ADC_SPI_SCK_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOB
+#define ISEN_ADC_SPI_SCK_GPIO           GPIOB, 13
+#define ISEN_ADC_SPI_MISO_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOB
+#define ISEN_ADC_SPI_MISO_GPIO          GPIOB, 14
+
+#define ISEN_ADC_CONVST_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOB
+#define ISEN_ADC_CONVST_GPIO            GPIOB, 15
+
+#define ISEN_ADC_RAW_TO_MA(raw)     (((raw) * 32 / 3) + 8)
 
 //---- POWER BOARD ENABLE GPIOS ----------------------------------------------------------------------------------------------------------------------------------
 

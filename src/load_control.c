@@ -1,6 +1,7 @@
 #include "load_control.h"
 #include "iset_dac.h"
 #include "internal_isen.h"
+#include "vi_sense.h"
 
 void load_control_task(void) {
 
@@ -20,9 +21,12 @@ void load_control_task(void) {
     iset_dac_init();
     internal_isen_init();
 
+    kernel_create_task(vi_sense_task, 100);
+
     while (1) {
 
-        kernel_yield();
+        //kernel_yield();
+        kernel_sleep_ms(1000);
     }
 }
 
