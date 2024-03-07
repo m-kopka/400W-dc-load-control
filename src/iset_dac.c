@@ -36,10 +36,23 @@ uint32_t iset_dac_set_current(uint32_t current_ma) {
     if (lut_entry > 400) lut_entry = 400;
 
     int32_t code = -3 * (int32_t)current_ma / 2 + 62703;        // nahradit LUT
-
-    spi_write(ISET_DAC_SPI, code, ISET_DAC_SPI_SS_GPIO);
+    iset_dac_set_raw(code);
 
     return (lut_entry * 100);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// sets the specified code to the ISET_DAC
+void iset_dac_set_raw(uint16_t code) {
+
+    kernel_time_t start_time = kernel_get_time_ms();
+
+    gpio_write(ISET_DAC_SPI_SS_GPIO, LOW);
+    spi_write(ISET_DAC_SPI, code);
+
+    while (!spi_tx_done(ISET_DAC_SPI) && kernel_get_time_since(start_time) < 10);
+    gpio_write(ISET_DAC_SPI_SS_GPIO, HIGH);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------

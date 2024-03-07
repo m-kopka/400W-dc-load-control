@@ -142,7 +142,13 @@ vsen_src_t vi_sense_get_vsen_source(void) {
 
 uint16_t __vsen_adc_read(void) {
 
-    spi_write(VSEN_ADC_SPI, 0x0000, VSEN_ADC_SPI_SS_GPIO);      // pulse the SPI SCK 16 times to read the value
+    kernel_time_t start_time = kernel_get_time_ms();
+
+    gpio_write(VSEN_ADC_SPI_SS_GPIO, LOW);
+    spi_write(VSEN_ADC_SPI, 0x0000);
+    
+    while (!spi_tx_done(VSEN_ADC_SPI) && kernel_get_time_since(start_time) < 10);
+    gpio_write(VSEN_ADC_SPI_SS_GPIO, HIGH);
 
     // pulse the !CONVST (TRIG) pin to trigger next conversion
     // no delay is needed, the pulse is about 60us, the datasheet minimum is 10us
@@ -156,7 +162,13 @@ uint16_t __vsen_adc_read(void) {
 
 uint16_t __isen_adc_read(void) {
 
-    spi_write(ISEN_ADC_SPI, 0x0000, ISEN_ADC_SPI_SS_GPIO);      // pulse the SPI SCK 16 times to read the value
+    kernel_time_t start_time = kernel_get_time_ms();
+
+    gpio_write(ISEN_ADC_SPI_SS_GPIO, LOW);
+    spi_write(ISEN_ADC_SPI, 0x0000);
+
+    while (!spi_tx_done(ISEN_ADC_SPI) && kernel_get_time_since(start_time) < 10);
+    gpio_write(ISEN_ADC_SPI_SS_GPIO, HIGH);
 
     // pulse the !CONVST (TRIG) pin to trigger next conversion
     // no delay is needed, the pulse is about 60us, the datasheet minimum is 10us

@@ -22,6 +22,9 @@ void iset_dac_init(void);
 // sets the I_SET DAC output voltage to the corresponding current value; returns the real set current in mA clamped and rounded by the driver
 uint32_t iset_dac_set_current(uint32_t current_ma);
 
+// sets the specified code to the ISET_DAC (for calibration)
+void iset_dac_set_raw(uint16_t code);
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _ISET_DAC_H_ */
