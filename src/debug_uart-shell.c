@@ -1,6 +1,7 @@
 #include "common_defs.h"
 #include "debug_uart.h"
 
+#include "iset_dac.h"
 #include "load_control.h"
 #include "fan_control.h"
 #include "temp_sensors.h"
@@ -164,6 +165,24 @@ void shell_update(char *buffer) {
             debug_print("CC level set to ");
             debug_print_int(current);
             debug_print(" mA.\n");
+        }
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // sets the load CC level in raw 16bit DAC value (for calibration)
+    else if (SHELL_CMD("iset-raw")) {
+
+        shell_assert_argc(1);
+
+        int code = atoi(args[1]);
+        if (code >= 0x4000 && code <= 0xffff) {     // limit to 10A for now
+
+            iset_dac_set_raw((uint16_t)code);
+
+            debug_print("ISET_DAC code set to ");
+            debug_print_int(code);
+            debug_print(" lsb.\n");
         }
     }
 

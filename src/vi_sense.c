@@ -1,6 +1,7 @@
 #include "vi_sense.h"
 #include "hal/spi.h"
 #include "hal/adc.h"
+#include "cmd_interface/cmd_spi_driver.h"
 
 uint16_t __vsen_adc_read(void);
 uint16_t __isen_adc_read(void);
@@ -100,6 +101,9 @@ void vi_sense_task(void) {
             vsen_sample_sum = 0;
             isen_sample_sum = 0;
             sample_count = 0;
+
+            cmd_write(CMD_ADDRESS_VIN, load_voltage_mv);
+            cmd_write(CMD_ADDRESS_ITOT, load_current_ma);
         }
 
         kernel_sleep_ms(125);

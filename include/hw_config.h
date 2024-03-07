@@ -91,7 +91,7 @@
 #define ISEN_ADC_CONVST_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOB
 #define ISEN_ADC_CONVST_GPIO            GPIOB, 15
 
-#define ISEN_ADC_RAW_TO_MA(raw)     (((raw) * 32 / 3) + 8)
+#define ISEN_ADC_RAW_TO_MA(raw)     (((raw) * 1075 / 100) - 50)
 
 //---- POWER BOARD ENABLE GPIOS ----------------------------------------------------------------------------------------------------------------------------------
 

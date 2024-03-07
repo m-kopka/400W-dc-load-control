@@ -35,7 +35,7 @@ uint32_t iset_dac_set_current(uint32_t current_ma) {
     uint32_t lut_entry = current_ma / 100;
     if (lut_entry > 400) lut_entry = 400;
 
-    int32_t code = -3 * (int32_t)current_ma / 2 + 62703;        // nahradit LUT
+    int32_t code = -14836 * (int32_t)current_ma / 10000 + 62569;
     iset_dac_set_raw(code);
 
     return (lut_entry * 100);
