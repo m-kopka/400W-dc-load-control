@@ -7,6 +7,7 @@
 #include "common_defs.h"
 #include "load_control.h"
 #include "temp_control.h"
+#include "cmd_interface/load_cmd.h"
 
 void heartbeat_task(void);
 
@@ -21,14 +22,12 @@ int main() {
     rcc_pll_init(CORE_CLOCK_FREQUENCY_HZ, RCC_PLL_SOURCE_HSE);
     rcc_set_system_clock_source(RCC_SYSTEM_CLOCK_SOURCE_PLL);
 
-    rcc_enable_peripheral_clock(RCC_PERIPH_AHB1_GPIOC);
-    gpio_set_mode(GPIOC, 14, GPIO_MODE_OUTPUT);
-
     kernel_init(HLCK_frequency_hz);
     kernel_create_task(debug_uart_task, 2000);
     kernel_create_task(heartbeat_task, 5000);
     kernel_create_task(temp_control_task, 100);
     kernel_create_task(load_control_task, 100);
+    kernel_create_task(load_cmd_task, 100);
     kernel_start();
 
     while (1) {
