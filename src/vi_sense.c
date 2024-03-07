@@ -1,16 +1,13 @@
 #include "vi_sense.h"
 #include "hal/spi.h"
-#include "hal/adc.h"
+#include "internal_isen.h"
 #include "cmd_interface/cmd_spi_driver.h"
 
 uint16_t __vsen_adc_read(void);
 uint16_t __isen_adc_read(void);
 
 uint32_t load_voltage_mv = 0;
-uint32_t vsen_sample_sum = 0;
 uint32_t load_current_ma = 0;
-uint32_t isen_sample_sum = 0;
-uint8_t sample_count = 0;
 vsen_src_t vsen_src = VSEN_SRC_INTERNAL;
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,30 +80,18 @@ void vi_sense_task(void) {
 
     while (1) {
 
-        vsen_sample_sum += __vsen_adc_read();
-        isen_sample_sum += __isen_adc_read();
-        sample_count++;
+        uint32_t vsen_sample = VSEN_ADC_RAW_TO_MV_INT(__vsen_adc_read());
+        uint32_t isen_sample = ISEN_ADC_RAW_TO_MA(__isen_adc_read());
 
-        if (sample_count == 8) {
+        load_voltage_mv = (load_voltage_mv + vsen_sample) >> 1;
+        load_current_ma = (load_current_ma + isen_sample) >> 1;
 
-            if (vsen_src == VSEN_SRC_INTERNAL) load_voltage_mv = VSEN_ADC_RAW_TO_MV_INT(vsen_sample_sum >> 3);
-            else load_voltage_mv = VSEN_ADC_RAW_TO_MV_REM(vsen_sample_sum >> 3);
+        if (load_current_ma < 500) load_current_ma = 4 * internal_isen_read(CURRENT_L1);
 
-            if (load_voltage_mv & 0x80000000) load_voltage_mv = 0;
+        cmd_write(CMD_ADDRESS_VIN, load_voltage_mv);
+        cmd_write(CMD_ADDRESS_ITOT, load_current_ma);
 
-
-            load_current_ma = ISEN_ADC_RAW_TO_MA(isen_sample_sum >> 3);
-            if (load_current_ma & 0x80000000) load_current_ma = 0;
-
-            vsen_sample_sum = 0;
-            isen_sample_sum = 0;
-            sample_count = 0;
-
-            cmd_write(CMD_ADDRESS_VIN, load_voltage_mv);
-            cmd_write(CMD_ADDRESS_ITOT, load_current_ma);
-        }
-
-        kernel_sleep_ms(125);
+        kernel_sleep_ms(500);
     }
 }
 
