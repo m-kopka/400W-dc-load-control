@@ -46,11 +46,8 @@ void shell_print_header(void) {
 // detects commands from the DEBUG_UART and respods to them
 void shell_update(char *buffer) {
 
+    if (buffer[0] == '\0') return;      // no command
     while ((buffer[0] <= ' ') && (buffer[0] != '\0')) buffer++;
-
-    // debug_print("> ");
-    // debug_print(buffer);
-    // debug_print("\n");
 
     char *args[5];
     uint8_t argc = shell_parse_args(buffer, args, 5);
@@ -192,7 +189,7 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("vsen")) {
 
         debug_print("load input voltage: ");
-        debug_print_int_dec(vi_sense_get_voltage());
+        debug_print_int_dec(vi_sense_get_voltage(), 2);
         debug_print(" V\n");
     }
 
@@ -202,7 +199,7 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("isen")) {
 
         debug_print("load current: ");
-        debug_print_int_dec(vi_sense_get_current());
+        debug_print_int_dec(vi_sense_get_current(), 2);
         debug_print(" A\n");
     }
 
@@ -212,7 +209,7 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("psen")) {
 
         debug_print("load power: ");
-        debug_print_int_dec(vi_sense_get_voltage() * vi_sense_get_current() / 1000);
+        debug_print_int_dec(vi_sense_get_voltage() * vi_sense_get_current() / 1000, 2);
         debug_print(" W\n");
     }
 
@@ -222,14 +219,14 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("isen-int")) {
 
         debug_print("i(L1): ");
-        debug_print_int(internal_isen_read(CURRENT_L1));
-        debug_print("mA\ni(L2): ");
-        debug_print_int(internal_isen_read(CURRENT_L2));
-        debug_print("mA\ni(R1): ");
-        debug_print_int(internal_isen_read(CURRENT_R1));
-        debug_print("mA\ni(R2): ");
-        debug_print_int(internal_isen_read(CURRENT_R2));
-        debug_print("mA\n");
+        debug_print_int_dec(internal_isen_read(CURRENT_L1), 3);
+        debug_print(" A\ni(L2): ");
+        debug_print_int_dec(internal_isen_read(CURRENT_L2), 3);
+        debug_print(" A\ni(R1): ");
+        debug_print_int_dec(internal_isen_read(CURRENT_R1), 3);
+        debug_print(" A\ni(R2): ");
+        debug_print_int_dec(internal_isen_read(CURRENT_R2), 3);
+        debug_print(" A\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

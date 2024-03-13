@@ -14,8 +14,8 @@ void debug_print(const char *str);
 // converts a number to string and sends it via DEBUG_UART
 void debug_print_int(int num);
 
-// divides a number by 1000, converts it to string and sends it via DEBUG_UART with 2 decimal places
-void debug_print_int_dec(int num);
+// divides a number by 1000, converts it to string and sends it via DEBUG_UART with selected number of decimal places
+void debug_print_int_dec(int value, uint8_t dec_places);
 
 // converts a number to string in a hexadecimal format and sends it via DEBUG_UART
 void debug_print_int_hex(int num, uint8_t hex_digits);

@@ -16,8 +16,8 @@ void shell_update(char *buffer);
 void debug_uart_task(void) {
 
     char tx_fifo[512];              // transmit fifo to be provided to the UART driver
-    char rx_fifo[128];              // receive fifo to be provided to the UART driver
-    char message_buffer[128];       // buffer for parsing an incomming message until a newline is received
+    char rx_fifo[256];              // receive fifo to be provided to the UART driver
+    char message_buffer[256];       // buffer for parsing an incomming message until a newline is received
     uint32_t buffer_pos = 0;        // current index into the message_buffer
 
     uart_init(DEBUG_UART, DEBUG_UART_BAUD, DEBUG_UART_TX_GPIO, DEBUG_UART_RX_GPIO, (char*)&tx_fifo, sizeof(tx_fifo), (char*)&rx_fifo, sizeof(rx_fifo));
@@ -65,33 +65,30 @@ void debug_print_int(int num) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// divides a number by 1000, converts it to string and sends it via DEBUG_UART with 2 decimal places
-void debug_print_int_dec(int num) {
+// divides a number by 1000, converts it to string and sends it via DEBUG_UART with selected number of decimal places
+void debug_print_int_dec(int value, uint8_t dec_places) {
 
-    char temp_buff[16];
-    itoa(num, temp_buff, 16, 10);
+    char string[16];        // stores the string generated from the input integer
+    int buff_index = 0;     // write head to the string array
+    int remainder = value;
+    int i = 0;
 
-    uint8_t total_places = strlen(temp_buff);
-    int i;
+    while (remainder > 0 || i < 3) {    // iterate while there are digits left or the decimal part isn't complete
 
-    if (num < 1000) uart_putc(DEBUG_UART, '0');
+        int digit = remainder % 10;     // get last digit
+        remainder /= 10;
 
-    for (i = 0; i < total_places - 3; i++) uart_putc(DEBUG_UART, temp_buff[i]);     // print integral part
+        // convert the current digit to a character and append it to the buffer; skip if the digit is ignored (dec_places setting)
+        if (++i > 3 - dec_places) string[buff_index++] = digit + '0';
 
-    uart_putc(DEBUG_UART, '.');     // decimal place
+        // append a decimal point after the decimal part is finished
+        if (i == 3) string[buff_index++] = '.';
+    }        
 
-    if (num < 100) uart_putc(DEBUG_UART, '0');
+    if (value < 1000) string[buff_index++] = '0';        // if the value doesn't have an integer part, append a zero
 
-    uart_putc(DEBUG_UART, temp_buff[i++]);  // print first decimal place
-
-    // if the value is 0, temp_buff[1] is not populated
-    if (num > 0) {
-
-        // round last digit to nearest value
-        if (temp_buff[i] < '5') uart_putc(DEBUG_UART, temp_buff[i++]);
-        else uart_putc(DEBUG_UART, temp_buff[i++] + 1);
-
-    } else uart_putc(DEBUG_UART, '0');
+    // print the buffer (the characters are in reverse order)
+    while (buff_index > 0) uart_putc(DEBUG_UART, string[--buff_index]);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
