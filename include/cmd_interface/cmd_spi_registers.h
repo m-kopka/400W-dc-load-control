@@ -26,13 +26,27 @@ typedef enum {
     CMD_ADDRESS_IL1         = 0x21,
     CMD_ADDRESS_IL2         = 0x22,
     CMD_ADDRESS_IR1         = 0x23,
-    CMD_ADDRESS_IR2         = 0x24
+    CMD_ADDRESS_IR2         = 0x24,
+    CMD_ADDRESS_TEMP_L      = 0x30,
+    CMD_ADDRESS_TEMP_R      = 0x31,
+    CMD_ADDRESS_RPM1        = 0x38,
+    CMD_ADDRESS_RPM2        = 0x39,
 
 } cmd_register_t;
 
-#define CMD_REGISTER_COUNT ((CMD_ADDRESS_IR2) + 1)
+#define CMD_REGISTER_COUNT ((CMD_ADDRESS_RPM2) + 1)
 
 #define cmd_address_valid(address) (((address) < CMD_REGISTER_COUNT))
+
+typedef enum {
+
+    LOAD_FAULT_COMMUNICATION = 0x0001,
+    LOAD_FAULT_CHECKSUM      = 0x0002,
+    LOAD_FAULT_OTP           = 0x0004,
+    LOAD_FAULT_TEMP_SENSOR   = 0x0008,
+    LOAD_FAULT_FAN           = 0x000c,
+
+} load_fault_t;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -11,6 +11,10 @@ void load_control_task(void) {
     gpio_write(LED_GREEN_GPIO, HIGH);
     gpio_set_mode(LED_GREEN_GPIO, GPIO_MODE_OUTPUT);
 
+    rcc_enable_peripheral_clock(LED_RED_GPIO_CLOCK);
+    gpio_write(LED_RED_GPIO, HIGH);
+    gpio_set_mode(LED_RED_GPIO, GPIO_MODE_OUTPUT);
+
     // EN L
     rcc_enable_peripheral_clock(LOAD_EN_L_GPIO_CLOCK);
     gpio_set_mode(LOAD_EN_L_GPIO, GPIO_MODE_OUTPUT);
@@ -22,7 +26,8 @@ void load_control_task(void) {
     iset_dac_init();
     internal_isen_init();
 
-    kernel_create_task(vi_sense_task, 100);
+    uint32_t vi_sense_stack[64];
+    kernel_create_task(vi_sense_task, vi_sense_stack, sizeof(vi_sense_stack), 100);
 
     while (1) {
 
@@ -44,4 +49,12 @@ void load_set_enable(bool state) {
     gpio_write(LED_GREEN_GPIO, !state);
 
     cmd_write(CMD_ADDRESS_STATUS, state);
+}
+
+void trigger_fault(load_fault_t fault) {
+
+    load_set_enable(false);
+    load_set_current(0);
+
+    gpio_write(LED_RED_GPIO, LOW);
 }

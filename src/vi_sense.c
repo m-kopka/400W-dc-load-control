@@ -88,10 +88,13 @@ void vi_sense_task(void) {
 
         if (load_current_ma < 500) load_current_ma = 4 * internal_isen_read(CURRENT_L1);
 
+        load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
+        load_current_ma = (load_current_ma + 25) / 50 * 50;
+
         cmd_write(CMD_ADDRESS_VIN, load_voltage_mv);
         cmd_write(CMD_ADDRESS_ITOT, load_current_ma);
 
-        kernel_sleep_ms(500);
+        kernel_sleep_ms(200);
     }
 }
 

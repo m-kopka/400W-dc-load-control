@@ -9,8 +9,6 @@
 #include "temp_control.h"
 #include "cmd_interface/load_cmd.h"
 
-void heartbeat_task(void);
-
 int main() {
 
     rcc_enable_peripheral_clock(RCC_PERIPH_APB1_PWR);
@@ -22,32 +20,21 @@ int main() {
     rcc_pll_init(CORE_CLOCK_FREQUENCY_HZ, RCC_PLL_SOURCE_HSE);
     rcc_set_system_clock_source(RCC_SYSTEM_CLOCK_SOURCE_PLL);
 
+    uint32_t debug_uart_stack[512];
+    uint32_t temp_control_stack[256];
+    uint32_t load_control_stack[256];
+    uint32_t load_cmd_stack[256];
+
     kernel_init(HLCK_frequency_hz);
-    kernel_create_task(debug_uart_task, 2000);
-    kernel_create_task(heartbeat_task, 5000);
-    kernel_create_task(temp_control_task, 100);
-    kernel_create_task(load_control_task, 100);
-    kernel_create_task(load_cmd_task, 100);
+    kernel_create_task(debug_uart_task, debug_uart_stack, sizeof(debug_uart_stack), 2000);
+    kernel_create_task(temp_control_task, temp_control_stack, sizeof(temp_control_stack), 100);
+    kernel_create_task(load_control_task, load_control_stack, sizeof(load_control_stack), 100);
+    kernel_create_task(load_cmd_task, load_cmd_stack, sizeof(load_cmd_stack), 100);
     kernel_start();
 
     while (1) {
 
         NVIC_SystemReset();     // kernel crashed
-    }
-}
-
-void heartbeat_task(void) {
-
-    rcc_enable_peripheral_clock(LED_RED_GPIO_CLOCK);
-    gpio_write(LED_RED_GPIO, HIGH);
-    gpio_set_mode(LED_RED_GPIO, GPIO_MODE_OUTPUT);
-
-    while (1) {
-
-        gpio_write(LED_RED_GPIO, LOW);
-        kernel_sleep_ms(50);
-        gpio_write(LED_RED_GPIO, HIGH);
-        kernel_sleep_ms(1950);
     }
 }
 

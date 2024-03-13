@@ -1,6 +1,6 @@
-[submodule "stm32f411-hal"]
-	path = stm32f411-hal
+[submodule "lib/stm32f411-hal"]
+	path = lib/stm32f411-hal
 	url = https://github.com/m-kopka/stm32f411-hal.git
-[submodule "mini-kernel"]
-	path = mini-kernel
+[submodule "lib/mini-kernel"]
+	path = lib/mini-kernel
 	url = https://github.com/m-kopka/mini-kernel.git

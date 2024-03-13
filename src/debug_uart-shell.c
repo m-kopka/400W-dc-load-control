@@ -30,12 +30,12 @@ uint8_t shell_parse_args(char *input, char **args, uint8_t argc);
 void shell_print_header(void) {
 
     debug_print("----------------------------------------------------------\n");
-    debug_print("  @@@@&        @@@@     @@@@   | 400W DC electronic load\n");
-    debug_print("  @@@@@&      @@@@@   @@@@     | Martin Kopka 2024\n");
+    debug_print("  @@@@&        @@@@     @@@@   | 400W DC Electronic Load\n");
+    debug_print("  @@@@@&      @@@@@   @@@@     | Control Board\n");
     debug_print("  @@@@@@@    @@@@@@ @@@@       | \n");
     debug_print("  @@@ @@@@  @@@ @@@@@@@@       | \n");
     debug_print("  @@@  @@@@@@@  @@@   @@@@     | \n");
-    debug_print("  @@@   @@@@@   @@@    @@@@@   | \n");
+    debug_print("  @@@   @@@@@   @@@    @@@@@   | Martin Kopka 2024\n");
     debug_print("  @@@    @@@    @@@      @@@@  | github.com/m-kopka\n");
     debug_print("----------------------------------------------------------\n");
     debug_print("(i) type \"help\" to show available commands.\n");

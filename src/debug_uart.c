@@ -15,9 +15,9 @@ void shell_update(char *buffer);
 // handles responding to commands from the DEBUG_UART
 void debug_uart_task(void) {
 
-    char tx_fifo[256];              // transmit fifo to be provided to the UART driver
-    char rx_fifo[256];              // receive fifo to be provided to the UART driver
-    char message_buffer[256];       // buffer for parsing an incomming message until a newline is received
+    char tx_fifo[512];              // transmit fifo to be provided to the UART driver
+    char rx_fifo[128];              // receive fifo to be provided to the UART driver
+    char message_buffer[128];       // buffer for parsing an incomming message until a newline is received
     uint32_t buffer_pos = 0;        // current index into the message_buffer
 
     uart_init(DEBUG_UART, DEBUG_UART_BAUD, DEBUG_UART_TX_GPIO, DEBUG_UART_RX_GPIO, (char*)&tx_fifo, sizeof(tx_fifo), (char*)&rx_fifo, sizeof(rx_fifo));

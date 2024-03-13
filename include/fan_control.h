@@ -19,6 +19,9 @@ void fan_regulator_task(void);
 // sets the target fan speed for both fans
 void fan_set_speed(uint8_t speed);
 
+// returns the current fan speed for both fans
+uint8_t fan_get_speed(void);
+
 // sets the target fan speed override for both fans
 // this is used to control the fan speed externally for example by a user; the override cannot set a lower speed than the speed set by the temperature control logic
 void fan_set_speed_override(uint8_t speed);
