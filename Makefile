@@ -49,47 +49,64 @@ CFILES  = $(foreach D,$(SRC_DIRS),$(wildcard $(D)/*.c))
 SFILES  = $(foreach D,$(SRC_DIRS),$(wildcard $(D)/*.S))
 
 #define all object files
-OFILES  = $(patsubst %.c,%.o,$(CFILES))
-OFILES += $(patsubst %.S,%.o,$(SFILES))
+OFILES  = $(patsubst %.c,build/%.o,$(CFILES))
+OFILES += $(patsubst %.S,build/%.o,$(SFILES))
 
 #define all dependency files
-DFILES  = $(patsubst %.c,%.d,$(CFILES))
-DFILES += $(patsubst %.S,%.d,$(SFILES))
+DFILES  = $(patsubst %.c,build/%.d,$(CFILES))
+DFILES += $(patsubst %.S,build/%.d,$(SFILES))
 
 #=================================================================================================================================================================
 
-all: build flash
+all: build flash		# build the program and flash it by default
+
+#---- BUILD DIRECTORY STRUCTURE ----------------------------------------------------------------------------------------------------------------------------------
+
+.PRECIOUS: build/. build%/.		# don't try to delete the directory structure after make is done
+
+# create the build directory itself
+build/.:
+	mkdir -p $@
+
+# create a subdirecotry inside of a build directory
+build%/.:
+	mkdir -p $@
+
+# automatic variables can't be used within prerequisite lists, so that $(@D) will expand to nothing. That is easily fixed by enabling secondary expansion
+.SECONDEXPANSION:
 
 #---- BUILD ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 build: $(TARGET).elf
 
 # create object files from C source files
-%.o: %.c
+build/%.o: %.c | $$(@D)/.
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # create object files from Assembly source files
-%.o: %.S
+build/%.o: %.S | $$(@D)/.
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # link object files to ELF file
-$(TARGET).elf: $(OFILES)
+$(TARGET).elf: $(OFILES) | $$(@D)/.
 	$(CC) $(LFLAGS) $^ -o $@
 	$(OBJCOPY) -O binary -j .text $@ $(TARGET).bin
 	$(OBJDUMP) -d $@ > $(TARGET).dis
 
 #---- FLASH ------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# flash the program using openocd
 flash: $(TARGET).elf
 	$(OPENOCD) -f $(OPENOCD_INTERFACE) -f $(OPENOCD_TARGET) -c "program $< verify reset exit"
 
 #---- CLEAN ------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# clean the build directory
 clean:
-	rm -rf build/* $(OFILES) $(DFILES)
+	rm -rf build/*
 
 c: clean
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
--include $(DFILES)
+-include $(DFILES)	# link the dependecy files to correctly rebuild source files after their header dependencies are modified
