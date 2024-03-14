@@ -10,6 +10,10 @@
 void shell_print_header(void);
 void shell_update(char *buffer);
 
+kernel_time_t last_repeat = 0;
+uint32_t repeat_interval_ms = 0;
+char repeat_command[64];
+
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
 // handles responding to commands from the DEBUG_UART
@@ -27,6 +31,7 @@ void debug_uart_task(void) {
 
         uint32_t bytes_parsed = 0;          // limit parsed bytes per update to avoid missed deadlines of other tasks or infinite loop in case of a fault
 
+        // handle incomming communication via UART
         while (uart_has_data(DEBUG_UART) && bytes_parsed < MAX_BYTES_PARSED) {
 
             char c = uart_getc(DEBUG_UART);
@@ -41,6 +46,13 @@ void debug_uart_task(void) {
                 shell_update(message_buffer);
 
             } else message_buffer[buffer_pos++] = c;     // else continue parsing
+        }
+
+        // handle command repetition
+        if (repeat_interval_ms > 0 && kernel_get_time_since(last_repeat) >= repeat_interval_ms) {
+
+            last_repeat = kernel_get_time_ms();
+            shell_update(repeat_command);
         }
 
         kernel_yield();
@@ -103,6 +115,28 @@ void debug_print_int_hex(int num, uint8_t hex_digits) {
     for (int i = 0; i < hex_digits - digits; i++) debug_print("0");
 
     debug_print(temp_buff);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// start an automatic command repetition
+void debug_repeat_start(char *command, uint32_t period) {
+
+    last_repeat = 0;
+    repeat_interval_ms = period;
+
+    uint32_t len = strlen(command) + 1;
+    if (len >= sizeof(repeat_command)) len = sizeof(repeat_command) - 1;
+
+    memcpy(repeat_command, command, len);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// stop an automatic command repetition
+void debug_repeat_stop(void) {
+
+    repeat_interval_ms = 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------

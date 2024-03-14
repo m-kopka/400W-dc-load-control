@@ -56,7 +56,26 @@ void shell_update(char *buffer) {
 
     if (SHELL_CMD("ahoj")) {
 
-        debug_print("zdar jak svina\n");
+        debug_print("zdar jak sviňa\n");
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    else if (SHELL_CMD("repeat")) {
+
+        if (argc == 1) debug_repeat_stop();
+
+        else if (argc >= 3) {
+
+            int period = atoi(args[1]);
+
+            if (period >= 10) debug_repeat_start(args[2], period);
+            else debug_print("(!) minimum period is 10 ms.\n");
+
+        } else {
+
+            debug_print("(!) usage: repeat \"<command>\" <period_ms>\n");
+        }
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

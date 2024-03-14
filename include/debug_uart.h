@@ -20,6 +20,12 @@ void debug_print_int_dec(int value, uint8_t dec_places);
 // converts a number to string in a hexadecimal format and sends it via DEBUG_UART
 void debug_print_int_hex(int num, uint8_t hex_digits);
 
+// start an automatic command repetition
+void debug_repeat_start(char *command, uint32_t period);
+
+// stop an automatic command repetition
+void debug_repeat_stop(void);
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _DEBUG_UART_H_ */
