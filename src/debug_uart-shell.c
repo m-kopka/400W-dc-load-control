@@ -277,6 +277,24 @@ void shell_update(char *buffer) {
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+    // sets the automatic disable voltage level
+    else if (SHELL_CMD("vdis")) {
+
+        shell_assert_argc(1);
+
+        int voltage = atoi(args[1]);
+        if (voltage >= 0 && voltage <= 100000) {
+
+            load_set_discharge_voltage((uint32_t)voltage);
+
+            debug_print("discharge voltage set to: ");
+            debug_print_int(voltage);
+            debug_print(" mV.\n");
+        }
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
     // prints all internal current sink currents
     else if (SHELL_CMD("help")) {
 

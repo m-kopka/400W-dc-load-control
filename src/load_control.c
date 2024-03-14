@@ -4,6 +4,9 @@
 #include "vi_sense.h"
 #include "cmd_interface/cmd_spi_driver.h"
 
+static uint32_t discharge_voltage = 0;
+bool enabled = false;
+
 void load_control_task(void) {
 
     // LED
@@ -31,7 +34,12 @@ void load_control_task(void) {
 
     while (1) {
 
-        kernel_yield();
+        if (enabled && vi_sense_get_voltage() < discharge_voltage) {
+
+            load_set_enable(false);
+        }
+
+        kernel_sleep_ms(100);
     }
 }
 
@@ -48,7 +56,14 @@ void load_set_enable(bool state) {
     gpio_write(LOAD_EN_R_GPIO, state);
     gpio_write(LED_GREEN_GPIO, !state);
 
+    enabled = state;
+
     cmd_write(CMD_ADDRESS_STATUS, state);
+}
+
+void load_set_discharge_voltage(uint32_t voltage_mv) {
+
+    discharge_voltage = voltage_mv;
 }
 
 void trigger_fault(load_fault_t fault) {
