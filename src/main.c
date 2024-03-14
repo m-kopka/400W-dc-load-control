@@ -5,9 +5,12 @@
 */
 
 #include "common_defs.h"
+#include "hal/iwdg.h"
 #include "load_control.h"
 #include "temp_control.h"
 #include "cmd_interface/load_cmd.h"
+
+void watchdog_task(void);
 
 int main() {
 
@@ -20,12 +23,14 @@ int main() {
     rcc_pll_init(CORE_CLOCK_FREQUENCY_HZ, RCC_PLL_SOURCE_HSE);
     rcc_set_system_clock_source(RCC_SYSTEM_CLOCK_SOURCE_PLL);
 
+    uint32_t watchdog_stack[32];
     uint32_t debug_uart_stack[512];
     uint32_t temp_control_stack[256];
     uint32_t load_control_stack[256];
     uint32_t load_cmd_stack[256];
 
     kernel_init(HLCK_frequency_hz);
+    kernel_create_task(watchdog_task, watchdog_stack, sizeof(watchdog_stack), 500);
     kernel_create_task(debug_uart_task, debug_uart_stack, sizeof(debug_uart_stack), 2000);
     kernel_create_task(temp_control_task, temp_control_stack, sizeof(temp_control_stack), 100);
     kernel_create_task(load_control_task, load_control_stack, sizeof(load_control_stack), 100);
@@ -35,6 +40,18 @@ int main() {
     while (1) {
 
         NVIC_SystemReset();     // kernel crashed
+    }
+}
+
+// handles the periodic watchdog reloading
+void watchdog_task(void) {
+
+    iwdg_init(IWDG_PR_8, 0xfff);
+
+    while (1) {
+
+        iwdg_reload();
+        kernel_yield();
     }
 }
 

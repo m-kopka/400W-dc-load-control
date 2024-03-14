@@ -10,9 +10,11 @@
 void shell_print_header(void);
 void shell_update(char *buffer);
 
-kernel_time_t last_repeat = 0;
-uint32_t repeat_interval_ms = 0;
-char repeat_command[64];
+//---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
+
+kernel_time_t last_repeat = 0;      // time of the last command repetition
+uint32_t repeat_interval_ms = 0;    // command repetition period
+char repeat_command[64];            // repeated command
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
