@@ -69,7 +69,6 @@ void load_set_discharge_voltage(uint32_t voltage_mv) {
 void trigger_fault(load_fault_t fault) {
 
     load_set_enable(false);
-    load_set_current(0);
 
     gpio_write(LED_RED_GPIO, LOW);
 }

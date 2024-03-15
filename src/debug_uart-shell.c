@@ -96,13 +96,13 @@ void shell_update(char *buffer) {
         int speed = atoi(args[1]);
         if (speed >= 0 && speed < 256) {
 
-            fan_set_speed_override(speed);
+            fan_set_pwm_override(speed);
 
-            debug_print("fan speed override set to ");
+            debug_print("fan pwm override set to ");
             debug_print(args[1]);
             debug_print(".\n");
 
-        } else debug_print("fan speed range is <0 - 255>");
+        } else debug_print("fan pwm range is <0 - 255>");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -117,7 +117,9 @@ void shell_update(char *buffer) {
             debug_print("rpm");
         }
 
-        debug_print(".\n"); 
+        debug_print(", pwm: "); 
+        debug_print_int((uint16_t)fan_get_pwm() * 100 / 255);
+        debug_print(" %.\n"); 
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

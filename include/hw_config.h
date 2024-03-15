@@ -137,7 +137,7 @@
 
 #define FAN1_PWM_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOB
 #define FAN1_PWM_GPIO           GPIOB, 8
-#define FAN1_PWM_TIMER          TIM4, 3
+#define FAN1_PWM_TIMER_CH       TIM4, 3
 #define FAN1_TACH_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOB
 #define FAN1_TACH_GPIO          GPIOB, 5
 #define FAN1_TACH_TIMER         TIM3
@@ -146,7 +146,7 @@
 
 #define FAN2_PWM_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOB
 #define FAN2_PWM_GPIO           GPIOB, 3
-#define FAN2_PWM_TIMER          TIM2, 2
+#define FAN2_PWM_TIMER_CH       TIM2, 2
 #define FAN2_TACH_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOA
 #define FAN2_TACH_GPIO          GPIOA, 11
 #define FAN2_TACH_TIMER         TIM5
