@@ -50,7 +50,7 @@ void temp_control_task(void) {
                 // trigger a sensor fault after after enough cumulative faults
                 if (++sensor_fault_cumulative_counter[sensor] == TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD) {
 
-                    trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_SENSOR_L : LOAD_FAULT_TEMP_SENSOR_R);
+                    load_trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_SENSOR_L : LOAD_FAULT_TEMP_SENSOR_R);
                     sensor_fault_cumulative_counter[sensor] = TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD - 1;
                 }
 
@@ -74,7 +74,7 @@ void temp_control_task(void) {
                 // trigger a fan fault after after enough cumulative faults
                 if (++fan_fault_cumulative_counter[fan] == FAN_FAULT_CUMULATIVE_THRESHOLD) {
 
-                    trigger_fault((fan == FAN1) ? LOAD_FAULT_FAN1 : LOAD_FAULT_FAN2);
+                    load_trigger_fault((fan == FAN1) ? LOAD_FAULT_FAN1 : LOAD_FAULT_FAN2);
                     fan_fault_cumulative_counter[fan] = FAN_FAULT_CUMULATIVE_THRESHOLD - 1; 
                 }
 
@@ -129,7 +129,7 @@ void temp_control_task(void) {
 
                 if (max_temperature >= temp_sensor_int_to_q8_2(TEMP_REGULATION_OTP_START_TEMP)) {
                     
-                    trigger_fault(LOAD_FAULT_OTP);
+                    load_trigger_fault(LOAD_FAULT_OTP);
 
                     control_state = CONTROL_STATE_IN_OTP;
                     fan_set_pwm(FAN_MAX_PWM);

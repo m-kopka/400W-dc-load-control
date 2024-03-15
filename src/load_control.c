@@ -4,9 +4,12 @@
 #include "vi_sense.h"
 #include "cmd_interface/cmd_spi_driver.h"
 
+uint16_t cc_level = 0;
 static uint32_t discharge_voltage = 0;
 bool enabled = false;
 uint16_t fault_register = 0;
+
+//---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
 void load_control_task(void) {
 
@@ -33,6 +36,8 @@ void load_control_task(void) {
     uint32_t vi_sense_stack[64];
     kernel_create_task(vi_sense_task, vi_sense_stack, sizeof(vi_sense_stack), 100);
 
+    load_set_cc_level(LOAD_START_CC_LEVEL_MA);
+
     while (1) {
 
         if (enabled && vi_sense_get_voltage() < discharge_voltage) {
@@ -44,32 +49,56 @@ void load_control_task(void) {
     }
 }
 
-void load_set_current(uint16_t current_ma) {
-
-    iset_dac_set_current(current_ma);
-
-    cmd_write(CMD_ADDRESS_CC_LEVEL, current_ma);
-}
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 void load_set_enable(bool state) {
 
+
+    if (state == enabled) return;
     if (state && fault_register) return;
 
-    gpio_write(LOAD_EN_L_GPIO, state);
-    gpio_write(LOAD_EN_R_GPIO, state);
-    gpio_write(LED_GREEN_GPIO, !state);
+    if (state) {
+
+        gpio_write(LOAD_EN_L_GPIO, HIGH);
+        gpio_write(LOAD_EN_R_GPIO, HIGH);
+        iset_dac_set_current(cc_level, true);
+        gpio_write(LED_GREEN_GPIO, LOW);
+
+    } else {
+
+        gpio_write(LOAD_EN_L_GPIO, LOW);
+        gpio_write(LOAD_EN_R_GPIO, LOW);
+        iset_dac_set_current(LOAD_MIN_CURRENT_MA, false);
+        gpio_write(LED_GREEN_GPIO, HIGH);
+    }
 
     enabled = state;
-
     cmd_write(CMD_ADDRESS_STATUS, state);
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+void load_set_cc_level(uint16_t current_ma) {
+
+    if (current_ma < LOAD_MIN_CURRENT_MA) current_ma = LOAD_MIN_CURRENT_MA;
+    if (current_ma > LOAD_MAX_CURRENT_MA) current_ma = LOAD_MAX_CURRENT_MA;
+
+    if (enabled) iset_dac_set_current(current_ma, true);
+
+    cc_level = current_ma;
+    cmd_write(CMD_ADDRESS_CC_LEVEL, current_ma);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 void load_set_discharge_voltage(uint32_t voltage_mv) {
 
     discharge_voltage = voltage_mv;
 }
 
-void trigger_fault(load_fault_t fault) {
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+void load_trigger_fault(load_fault_t fault) {
 
     load_set_enable(false);
     gpio_write(LED_RED_GPIO, LOW);
@@ -78,6 +107,8 @@ void trigger_fault(load_fault_t fault) {
     cmd_write(CMD_ADDRESS_FAULT1, fault_register);
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 void clear_fault() {
 
     gpio_write(LED_RED_GPIO, HIGH);
@@ -85,3 +116,5 @@ void clear_fault() {
     fault_register = 0;
     cmd_write(CMD_ADDRESS_FAULT1, fault_register);
 }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------

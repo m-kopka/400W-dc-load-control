@@ -24,6 +24,16 @@
 #define TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD      4   // temperature sensor fault is triggered after n cumulative faults
 #define FAN_FAULT_CUMULATIVE_THRESHOLD              8   // fan fault is triggered after n cumulative faults
 
+//---- LOAD CONTROL ----------------------------------------------------------------------------------------------------------------------------------------------
+
+#define LOAD_MIN_CURRENT_MA     100
+#define LOAD_MAX_CURRENT_MA     42000
+#define LOAD_START_CC_LEVEL_MA  1000
+
+//---- ISET DAC --------------------------------------------------------------------------------------------------------------------------------------------------
+
+#define SLEW_LIMIT_AMPS_PER_SECOND  20
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _CONFIG_H_ */

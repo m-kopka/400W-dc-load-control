@@ -1,5 +1,15 @@
 #include "iset_dac.h"
 #include "hal/spi.h"
+#include "hal/timer.h"
+
+//---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
+
+static volatile int32_t current_code = 0;       // most recent code sent to the DAC (used in slew limit logic)
+static uint16_t target_code = 0;                // target DAC code in slew limited ramp
+
+//---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
+
+void iset_dac_set_raw(uint16_t code);
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -24,35 +34,76 @@ void iset_dac_init(void) {
     ISET_DAC_SPI->CR2  = 0;
     ISET_DAC_SPI->CR1 |= SPI_CR1_SPE;       // spi enable
 
-    iset_dac_set_current(0);
+    iset_dac_set_current(0, false);
+
+    // setup the timer to trigger an interrupt in regular interval while the load current is in transition
+    // set the timer frequency at 10x the required interrupt frequency and reload at 9 (interrupt every 10 counts)
+    timer_init_counter(ISET_DAC_TIMER, ISET_DAC_TIMER_FREQUENCY * 10, TIMER_DIR_UP, 9);
+
+    ISET_DAC_TIMER->CR1 |= TIM_CR1_URS;
+    ISET_DAC_TIMER->EGR |= TIM_EGR_UG;
+    ISET_DAC_TIMER->DIER |= TIM_DIER_UIE;
+    ISET_DAC_TIMER->SR &= ~TIM_SR_UIF;
+
+    NVIC_EnableIRQ(ISET_DAC_TIMER_IRQ);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// sets the I_SET DAC output voltage to the corresponding current value; returns the real set current in mA clamped and rounded by the driver
-uint32_t iset_dac_set_current(uint32_t current_ma) {
+// sets the I_SET DAC output voltage to the corresponding current value
+void iset_dac_set_current(uint32_t current_ma, bool slew_limit) {
 
-    uint32_t lut_entry = current_ma / 100;
-    if (lut_entry > 400) lut_entry = 400;
+    if (slew_limit) {       // change the DAC value in regular intervals until the target current is reached
 
-    int32_t code = -14836 * (int32_t)current_ma / 10000 + 62569;
-    iset_dac_set_raw(code);
+        target_code = ISET_DAC_MA_INT_TO_RAW(current_ma);
+        timer_start_count(ISET_DAC_TIMER);
 
-    return (lut_entry * 100);
+    } else iset_dac_set_raw(ISET_DAC_MA_INT_TO_RAW(current_ma));
 }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
 // sets the specified code to the ISET_DAC
 void iset_dac_set_raw(uint16_t code) {
 
-    kernel_time_t start_time = kernel_get_time_ms();
-
     gpio_write(ISET_DAC_SPI_SS_GPIO, LOW);
     spi_write(ISET_DAC_SPI, code);
 
-    while (!spi_tx_done(ISET_DAC_SPI) && kernel_get_time_since(start_time) < 10);
+    while (!spi_tx_done(ISET_DAC_SPI));
     gpio_write(ISET_DAC_SPI_SS_GPIO, HIGH);
+
+    current_code = code;
+}
+
+//---- IRQ HANDLERS ----------------------------------------------------------------------------------------------------------------------------------------------
+
+// triggered in regular intervals while the load current is in transition to slowly ramp the dac
+void ISET_DAC_TIMER_IRQ_HANDLER(void) {
+
+    if (bit_is_set(ISET_DAC_TIMER->SR, TIM_SR_UIF)) {
+
+        if (current_code < target_code) {       // negative DAC ramp (positive current ramp)
+
+            current_code -= ISET_DAC_LSB_PER_MA(SLEW_LIMIT_AMPS_PER_SECOND);
+            if (current_code >= target_code) {      // target value reached, stop count
+                
+                current_code = target_code;
+                timer_stop_count(ISET_DAC_TIMER);
+            }
+
+        } else {                                // positive DAC ramp (negative current ramp)
+
+            current_code += ISET_DAC_LSB_PER_MA(SLEW_LIMIT_AMPS_PER_SECOND);
+            if (current_code <= target_code) {      // target value reached, stop count    
+                
+                current_code = target_code;
+                timer_stop_count(ISET_DAC_TIMER);
+            }
+        }
+
+        iset_dac_set_raw(current_code);
+        clear_bits(ISET_DAC_TIMER->SR, TIM_SR_UIF);
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------

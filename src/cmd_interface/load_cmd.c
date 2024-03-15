@@ -26,7 +26,7 @@ void load_cmd_task(void) {
 
                 if (address == CMD_ADDRESS_CC_LEVEL) {
 
-                    if (data <= 10000) load_set_current(data);
+                    if (data <= 10000) load_set_cc_level(data);
                 }
 
             }

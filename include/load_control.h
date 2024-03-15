@@ -8,13 +8,13 @@
 
 void load_control_task(void);
 
-void load_set_current(uint16_t current_ma);
-
 void load_set_enable(bool state);
+
+void load_set_cc_level(uint16_t current_ma);
 
 void load_set_discharge_voltage(uint32_t voltage_mv);
 
-void trigger_fault(load_fault_t fault);
+void load_trigger_fault(load_fault_t fault);
 
 void clear_fault();
 

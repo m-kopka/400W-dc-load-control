@@ -52,6 +52,14 @@
 #define ISET_DAC_SPI_MOSI_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOA
 #define ISET_DAC_SPI_MOSI_GPIO          GPIOA, 7
 
+#define ISET_DAC_TIMER                  TIM9
+#define ISET_DAC_TIMER_IRQ              TIM1_BRK_TIM9_IRQn
+#define ISET_DAC_TIMER_IRQ_HANDLER      TIM1_BRK_TIM9_Handler
+#define ISET_DAC_TIMER_FREQUENCY        1000
+
+#define ISET_DAC_LSB_PER_MA(i_ma)       (-14836 * (int32_t)(i_ma) / 10000)
+#define ISET_DAC_MA_INT_TO_RAW(i_ma)    (ISET_DAC_LSB_PER_MA(i_ma) + 62569)
+
 //---- VSEN ADC --------------------------------------------------------------------------------------------------------------------------------------------------
 
 #define VSEN_ADC_SPI            SPI5
