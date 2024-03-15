@@ -43,10 +43,22 @@ typedef enum {
     LOAD_FAULT_COMMUNICATION = 0x0001,
     LOAD_FAULT_CHECKSUM      = 0x0002,
     LOAD_FAULT_OTP           = 0x0004,
-    LOAD_FAULT_TEMP_SENSOR   = 0x0008,
-    LOAD_FAULT_FAN           = 0x000c,
+    LOAD_FAULT_TEMP_SENSOR_L = 0x0008,
+    LOAD_FAULT_TEMP_SENSOR_R = 0x0010,
+    LOAD_FAULT_FAN1          = 0x0020,
+    LOAD_FAULT_FAN2          = 0x0040,
+    LOAD_FAULT_OCP           = 0x0080,
+    LOAD_FAULT_FUSE_L1       = 0x0100,
+    LOAD_FAULT_FUSE_L2       = 0x0200,
+    LOAD_FAULT_FUSE_R1       = 0x0400,
+    LOAD_FAULT_FUSE_R2       = 0x0800,
+    LOAD_FAULT_EXTERNAL      = 0x1000
 
 } load_fault_t;
+
+#define LOAD_ID_CODE    0x10AD
+
+#define LOAD_ENABLE_KEY 0xABCD
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 

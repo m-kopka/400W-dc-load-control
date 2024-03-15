@@ -21,6 +21,9 @@
 // PWM will be at FAN_MIN_PWM at the temperature of TEMP_REGULATION_START_TEMP and wil reach FAN_MAX_PWM before the temperature of TEMP_REGULATION_OTP_START_TEMP
 #define TEMP_REGULATION_SLOPE       (((((FAN_MAX_PWM) - (FAN_MIN_PWM)) / ((TEMP_REGULATION_OTP_START_TEMP) - (TEMP_REGULATION_START_TEMP))) + 3) / 4)
 
+#define TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD      4   // temperature sensor fault is triggered after n cumulative faults
+#define FAN_FAULT_CUMULATIVE_THRESHOLD              8   // fan fault is triggered after n cumulative faults
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _CONFIG_H_ */

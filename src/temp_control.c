@@ -2,23 +2,16 @@
 #include "load_control.h"
 #include "cmd_interface/cmd_spi_driver.h"
 
+//---- ENUMERATIONS ----------------------------------------------------------------------------------------------------------------------------------------------
+
 typedef enum {
 
     CONTROL_STATE_IDLE,             // fan control is inactive, temperature too low
     CONTROL_STATE_IN_REGULATION,    // fan control is active
     CONTROL_STATE_STABLE,           // temperature stabilized and fans are kept at constant speed
     CONTROL_STATE_IN_OTP,           // overtemperature protection triggered
-    CONTROL_STATE_IN_FAULT          // sensor or fan fault
 
 } temp_control_state_t;
-
-temp_control_state_t control_state = CONTROL_STATE_IDLE;
-bool selfest_done = false;
-uint16_t fault_flags = 0x0000;
-uint32_t sensor_fault_cumulative_counter[2] = {0};
-uint32_t fan_fault_cumulative_counter[2] = {0};
-
-void __trigger_otp(void);
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -37,13 +30,13 @@ void temp_control_task(void) {
 
         //---- TEMPERATURE MEASUREMENT ---------------------------------------------------------------------------------------------------------------------------
         
-        uint16_t temperature_l = temp_sensor_read_fixed(TEMP_L);
-        uint16_t temperature_r = temp_sensor_read_fixed(TEMP_R);
-
-        cmd_write(CMD_ADDRESS_TEMP_L, temp_sensor_q8_2_to_int(temperature_l));
-        cmd_write(CMD_ADDRESS_TEMP_R, temp_sensor_q8_2_to_int(temperature_r));
+        uint16_t temperature[2];
+        temperature[TEMP_L] = temp_sensor_read_fixed(TEMP_L);
+        temperature[TEMP_R] = temp_sensor_read_fixed(TEMP_R);
 
         //---- HANDLING SENSOR FAULTS ----------------------------------------------------------------------------------------------------------------------------
+
+        static uint32_t sensor_fault_cumulative_counter[2] = {0};
 
         for (int sensor = TEMP_L; sensor <= TEMP_R; sensor++) {
 
@@ -52,15 +45,13 @@ void temp_control_task(void) {
             // fault is short or open
             if (sensor_fault != TEMP_SEN_FAULT_NONE) {
 
-                // trigger a sensor fault after after 4 cumulative faults
-                if (++sensor_fault_cumulative_counter[sensor] == 4) {
+                temperature[sensor] = 0;
 
-                    write_masked(fault_flags, sensor_fault << (sensor * 2), 0x3 << (sensor * 2));
-                    control_state = CONTROL_STATE_IN_FAULT;
-                    fan_set_pwm(0);
-                    trigger_fault(LOAD_FAULT_TEMP_SENSOR);
+                // trigger a sensor fault after after enough cumulative faults
+                if (++sensor_fault_cumulative_counter[sensor] == TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD) {
 
-                    sensor_fault_cumulative_counter[sensor] = 3;
+                    trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_SENSOR_L : LOAD_FAULT_TEMP_SENSOR_R);
+                    sensor_fault_cumulative_counter[sensor] = TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD - 1;
                 }
 
             // no fault, decrement the cumulative counter
@@ -69,6 +60,7 @@ void temp_control_task(void) {
 
         //---- HANDLING FAN FAULTS -------------------------------------------------------------------------------------------------------------------------------
 
+        static uint32_t fan_fault_cumulative_counter[2] = {0};
         uint8_t fan_pwm = fan_get_pwm();
         
         // check the RPM of both fans
@@ -77,26 +69,24 @@ void temp_control_task(void) {
             uint16_t fan_rpm = fan_get_rpm(fan);
 
             // fan PWM is above idle but no spin
-            if (fan_pwm > 30 && fan_rpm == 0) {
+            if (fan_pwm > FAN_MIN_PWM && fan_rpm == 0) {
 
-                if (++fan_fault_cumulative_counter[fan] == 8) {
+                // trigger a fan fault after after enough cumulative faults
+                if (++fan_fault_cumulative_counter[fan] == FAN_FAULT_CUMULATIVE_THRESHOLD) {
 
-                    set_bits(fault_flags, 1 << (4 + fan));
-                    control_state = CONTROL_STATE_IN_FAULT;
-                    fan_set_pwm(0);
-                    trigger_fault(LOAD_FAULT_FAN);
-
-                    fan_fault_cumulative_counter[fan] = 7; 
+                    trigger_fault((fan == FAN1) ? LOAD_FAULT_FAN1 : LOAD_FAULT_FAN2);
+                    fan_fault_cumulative_counter[fan] = FAN_FAULT_CUMULATIVE_THRESHOLD - 1; 
                 }
 
-            } else if (fan_fault_cumulative_counter > 0) fan_fault_cumulative_counter[fan]--;
+            } else if (fan_fault_cumulative_counter[fan] > 0) fan_fault_cumulative_counter[fan]--;
 
             cmd_write((fan == FAN1) ? CMD_ADDRESS_RPM1 : CMD_ADDRESS_RPM2, fan_pwm);
         }
 
         //---- FAN CONTROL ---------------------------------------------------------------------------------------------------------------------------------------
 
-        uint16_t temperature = (temperature_l > temperature_r) ? temperature_l : temperature_r;     // regulate accordung to the highest measured temperature
+        static temp_control_state_t control_state = CONTROL_STATE_IDLE;     // temperature control state machine
+        uint16_t max_temperature = (temperature[TEMP_L] > temperature[TEMP_R]) ? temperature[TEMP_L] : temperature[TEMP_R];     // regulate according to the highest measured temperature
         static uint16_t stable_temperature = 0;         // set to current temperature when the fan pwm stabilizes
 
         switch (control_state) {
@@ -107,7 +97,7 @@ void temp_control_task(void) {
             case CONTROL_STATE_IDLE: {
 
                 // temperature above threshold, start ramping up the fans
-                if (temperature > temp_sensor_int_to_q8_2(TEMP_REGULATION_START_TEMP)) control_state = CONTROL_STATE_IN_REGULATION;
+                if (max_temperature >= temp_sensor_int_to_q8_2(TEMP_REGULATION_START_TEMP)) control_state = CONTROL_STATE_IN_REGULATION;
                 break;
             }
 
@@ -119,7 +109,7 @@ void temp_control_task(void) {
                 static uint16_t stable_pwm_count = 0;
                 uint8_t prev_pwm = fan_get_pwm();
 
-                int16_t pwm = TEMP_REGULATION_SLOPE * (temperature - temp_sensor_int_to_q8_2(TEMP_REGULATION_START_TEMP)) + FAN_MIN_PWM;
+                int16_t pwm = TEMP_REGULATION_SLOPE * (max_temperature - temp_sensor_int_to_q8_2(TEMP_REGULATION_START_TEMP)) + FAN_MIN_PWM;
 
                 if      (pwm < FAN_MIN_PWM) pwm = FAN_MIN_PWM;
                 else if (pwm > FAN_MAX_PWM) pwm = FAN_MAX_PWM;
@@ -131,14 +121,20 @@ void temp_control_task(void) {
                     // pwm was stable for 16 iterations, temperature is stable
                     if (++stable_pwm_count == 16) {
 
-                        stable_temperature = temperature;
+                        stable_temperature = max_temperature;
                         control_state = CONTROL_STATE_STABLE;
                     }
 
                 }   else stable_pwm_count = 0;
 
-                if (temperature > temp_sensor_int_to_q8_2(TEMP_REGULATION_OTP_START_TEMP)) __trigger_otp();
-                else if (temperature < temp_sensor_int_to_q8_2(TEMP_REGULATION_STOP_TEMP)) {
+                if (max_temperature >= temp_sensor_int_to_q8_2(TEMP_REGULATION_OTP_START_TEMP)) {
+                    
+                    trigger_fault(LOAD_FAULT_OTP);
+
+                    control_state = CONTROL_STATE_IN_OTP;
+                    fan_set_pwm(FAN_MAX_PWM);
+
+                } else if (max_temperature <= temp_sensor_int_to_q8_2(TEMP_REGULATION_STOP_TEMP)) {
                     
                     fan_set_pwm(FAN_IDLE_PWM);
                     control_state = CONTROL_STATE_IDLE;     // transistors cooled down - go back to idle
@@ -153,8 +149,8 @@ void temp_control_task(void) {
             case CONTROL_STATE_STABLE: {
 
                 // temperature changed by 1 °C, go back to fan regulation
-                     if (temperature >= stable_temperature + temp_sensor_int_to_q8_2(1)) control_state = CONTROL_STATE_IN_REGULATION;
-                else if (temperature <= stable_temperature - temp_sensor_int_to_q8_2(1)) control_state = CONTROL_STATE_IN_REGULATION;
+                     if (max_temperature >= stable_temperature + temp_sensor_int_to_q8_2(1)) control_state = CONTROL_STATE_IN_REGULATION;
+                else if (max_temperature <= stable_temperature - temp_sensor_int_to_q8_2(1)) control_state = CONTROL_STATE_IN_REGULATION;
 
                 break;
             }
@@ -165,15 +161,7 @@ void temp_control_task(void) {
             case CONTROL_STATE_IN_OTP: {
 
                 // load cooled down after an OTP trigger, stop the fans; the OTP fault remains triggered until clearing by master
-                if (temperature < temp_sensor_int_to_q8_2(TEMP_REGULATION_OTP_STOP_TEMP)) control_state = CONTROL_STATE_IN_REGULATION;
-                break;
-            }
-
-            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-            case CONTROL_STATE_IN_FAULT: {
-
-                fan_set_pwm(0);
+                if (max_temperature <= temp_sensor_int_to_q8_2(TEMP_REGULATION_OTP_STOP_TEMP)) control_state = CONTROL_STATE_IN_REGULATION;
                 break;
             }
 
@@ -182,32 +170,14 @@ void temp_control_task(void) {
 
         //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
+        // write the measured temperature to its respective registers
+        cmd_write(CMD_ADDRESS_TEMP_L, temp_sensor_q8_2_to_int(temperature[TEMP_L]));
+        cmd_write(CMD_ADDRESS_TEMP_R, temp_sensor_q8_2_to_int(temperature[TEMP_R]));
+
+        //--------------------------------------------------------------------------------------------------------------------------------------------------------
+
         kernel_sleep_ms(500);
     }
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-void __trigger_otp(void) {
-
-    set_bits(fault_flags, 1 << (6 + 0));
-    trigger_fault(LOAD_FAULT_OTP);
-
-    control_state = CONTROL_STATE_IN_OTP;
-    fan_set_pwm(FAN_MAX_PWM);
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-void temp_control_clear_faults(void) {
-
-    fault_flags = 0x00;
-    sensor_fault_cumulative_counter[0] = 0;
-    sensor_fault_cumulative_counter[1] = 0;
-    fan_fault_cumulative_counter[0] = 0;
-    fan_fault_cumulative_counter[1] = 0;
-
-    if (control_state == CONTROL_STATE_IN_FAULT) control_state = CONTROL_STATE_IDLE;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------

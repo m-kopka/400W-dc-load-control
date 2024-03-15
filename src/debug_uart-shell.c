@@ -295,6 +295,12 @@ void shell_update(char *buffer) {
         }
     }
 
+    else if (SHELL_CMD("clear")) {
+
+        debug_print("faults cleared.\n");
+        clear_fault();
+    }
+
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     // prints all internal current sink currents

@@ -10,8 +10,6 @@
 // regulates fan speed based on power transistor temperature
 void temp_control_task(void);
 
-void temp_control_clear_faults(void);
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _TEMP_CONTROL_H_ */

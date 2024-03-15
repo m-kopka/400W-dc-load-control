@@ -16,6 +16,8 @@ void load_set_discharge_voltage(uint32_t voltage_mv);
 
 void trigger_fault(load_fault_t fault);
 
+void clear_fault();
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _LOAD_CONTROL_H_ */

@@ -6,6 +6,7 @@
 
 static uint32_t discharge_voltage = 0;
 bool enabled = false;
+uint16_t fault_register = 0;
 
 void load_control_task(void) {
 
@@ -52,6 +53,8 @@ void load_set_current(uint16_t current_ma) {
 
 void load_set_enable(bool state) {
 
+    if (state && fault_register) return;
+
     gpio_write(LOAD_EN_L_GPIO, state);
     gpio_write(LOAD_EN_R_GPIO, state);
     gpio_write(LED_GREEN_GPIO, !state);
@@ -69,6 +72,16 @@ void load_set_discharge_voltage(uint32_t voltage_mv) {
 void trigger_fault(load_fault_t fault) {
 
     load_set_enable(false);
-
     gpio_write(LED_RED_GPIO, LOW);
+
+    fault_register |= fault;
+    cmd_write(CMD_ADDRESS_FAULT1, fault_register);
+}
+
+void clear_fault() {
+
+    gpio_write(LED_RED_GPIO, HIGH);
+
+    fault_register = 0;
+    cmd_write(CMD_ADDRESS_FAULT1, fault_register);
 }
