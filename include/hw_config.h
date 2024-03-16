@@ -168,6 +168,11 @@
 #define FAN_TACH_PULSES_PER_ROTATION        2           // number of FAN_TACH pin pulses per rotation
 #define FAN_TACH_NO_ROTATION_DETECT_TIME    150         // if the last FAN_TACH pulse is older than this time [ms]. The measurement logic will evaluate this as no fan rotation
 
+//---- EXTERNAL FAULT PIN ----------------------------------------------------------------------------------------------------------------------------------------
+
+#define EXT_FAULT_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOA
+#define EXT_FAULT_GPIO          GPIOA, 8
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _HW_CONFIG_H_ */

@@ -26,13 +26,13 @@
 
 //---- LOAD CONTROL ----------------------------------------------------------------------------------------------------------------------------------------------
 
-#define LOAD_MIN_CURRENT_MA     100
-#define LOAD_MAX_CURRENT_MA     42000
-#define LOAD_START_CC_LEVEL_MA  1000
+#define LOAD_MIN_CURRENT_MA     100     // minimum CC level allowed [mA]
+#define LOAD_MAX_CURRENT_MA     42000   // maximum CC level allowed [mA]
+#define LOAD_START_CC_LEVEL_MA  1000    // CC level on startup [mA]
 
 //---- ISET DAC --------------------------------------------------------------------------------------------------------------------------------------------------
 
-#define SLEW_LIMIT_AMPS_PER_SECOND  20
+#define SLEW_LIMIT_AMPS_PER_SECOND  20      // load slew rate when changing CC level or enabling the load [A/S]
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 

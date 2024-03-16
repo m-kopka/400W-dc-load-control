@@ -9,32 +9,33 @@ static uint32_t discharge_voltage = 0;
 bool enabled = false;
 uint16_t fault_register = 0;
 
+void ext_fault_task(void);
+
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
 void load_control_task(void) {
 
-    // LED
+    // LEDs
     rcc_enable_peripheral_clock(LED_GREEN_GPIO_CLOCK);
-    gpio_write(LED_GREEN_GPIO, HIGH);
-    gpio_set_mode(LED_GREEN_GPIO, GPIO_MODE_OUTPUT);
-
     rcc_enable_peripheral_clock(LED_RED_GPIO_CLOCK);
+    gpio_write(LED_GREEN_GPIO, HIGH);
     gpio_write(LED_RED_GPIO, HIGH);
+    gpio_set_mode(LED_GREEN_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_mode(LED_RED_GPIO, GPIO_MODE_OUTPUT);
 
-    // EN L
+    // Power board enable pins
     rcc_enable_peripheral_clock(LOAD_EN_L_GPIO_CLOCK);
-    gpio_set_mode(LOAD_EN_L_GPIO, GPIO_MODE_OUTPUT);
-
-    // EN R
     rcc_enable_peripheral_clock(LOAD_EN_R_GPIO_CLOCK);
+    gpio_set_mode(LOAD_EN_L_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_mode(LOAD_EN_R_GPIO, GPIO_MODE_OUTPUT);
     
     iset_dac_init();
     internal_isen_init();
 
     uint32_t vi_sense_stack[64];
+    uint32_t ext_fault_stack[64];
     kernel_create_task(vi_sense_task, vi_sense_stack, sizeof(vi_sense_stack), 100);
+    kernel_create_task(ext_fault_task, ext_fault_stack, sizeof(ext_fault_stack), 10);
 
     load_set_cc_level(LOAD_START_CC_LEVEL_MA);
 
@@ -52,7 +53,6 @@ void load_control_task(void) {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 void load_set_enable(bool state) {
-
 
     if (state == enabled) return;
     if (state && fault_register) return;
