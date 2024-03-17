@@ -283,6 +283,18 @@ void shell_update(char *buffer) {
         clear_fault();
     }
 
+    else if (SHELL_CMD("mask")) {
+
+        shell_assert_argc(1);
+
+        int mask = atoi(args[1]);
+        if (mask >= 0 && mask <= 0xffff) {
+
+            debug_print("fault mask changed.\n");
+            load_set_fault_mask((uint16_t)mask);
+        }
+    }
+
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     // prints all internal current sink currents

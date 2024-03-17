@@ -56,6 +56,8 @@ typedef enum {
 
 } load_fault_t;
 
+#define LOAD_UNMASKABLE_FAULTS (LOAD_FAULT_OTP | LOAD_FAULT_TEMP_SENSOR_L | LOAD_FAULT_TEMP_SENSOR_R)
+
 #define LOAD_ID_CODE    0x10AD
 
 #define LOAD_ENABLE_KEY 0xABCD

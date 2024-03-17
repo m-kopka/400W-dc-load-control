@@ -8,6 +8,7 @@ uint16_t cc_level = 0;
 static uint32_t discharge_voltage = 0;
 bool enabled = false;
 uint16_t fault_register = 0;
+uint16_t fault_mask = 0xffff;
 
 void ext_fault_task(void);
 
@@ -101,11 +102,27 @@ void load_set_discharge_voltage(uint32_t voltage_mv) {
 
 void load_trigger_fault(load_fault_t fault) {
 
-    load_set_enable(false);
-    gpio_write(LED_RED_GPIO, LOW);
+    if (fault & fault_mask) {
+
+        load_set_enable(false);
+        gpio_write(LED_RED_GPIO, LOW);
+    }
 
     fault_register |= fault;
     cmd_write(CMD_ADDRESS_FAULT1, fault_register);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+void load_set_fault_mask(load_fault_t mask) {
+
+    fault_mask = mask | LOAD_UNMASKABLE_FAULTS;
+
+    if (fault_register & fault_mask) {
+
+        load_set_enable(false);
+        gpio_write(LED_RED_GPIO, LOW);
+    }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
