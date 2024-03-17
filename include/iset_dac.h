@@ -22,6 +22,9 @@ void iset_dac_init(void);
 // sets the I_SET DAC output voltage to the corresponding current value
 void iset_dac_set_current(uint32_t current_ma, bool slew_limit);
 
+// writes the specified 16bit code to the ISET_DAC
+void iset_dac_write_code(uint16_t code);
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _ISET_DAC_H_ */

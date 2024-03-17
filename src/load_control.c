@@ -59,6 +59,7 @@ void load_set_enable(bool state) {
 
     if (state) {
 
+        iset_dac_set_current(LOAD_MIN_CURRENT_MA, false);
         gpio_write(LOAD_EN_L_GPIO, HIGH);
         gpio_write(LOAD_EN_R_GPIO, HIGH);
         iset_dac_set_current(cc_level, true);
@@ -68,7 +69,7 @@ void load_set_enable(bool state) {
 
         gpio_write(LOAD_EN_L_GPIO, LOW);
         gpio_write(LOAD_EN_R_GPIO, LOW);
-        iset_dac_set_current(LOAD_MIN_CURRENT_MA, false);
+        iset_dac_write_code(0xffff);
         gpio_write(LED_GREEN_GPIO, HIGH);
     }
 

@@ -58,13 +58,13 @@ void iset_dac_set_current(uint32_t current_ma, bool slew_limit) {
         target_code = ISET_DAC_MA_TO_CODE(current_ma);
         timer_start_count(ISET_DAC_TIMER);
 
-    } else iset_dac_set_raw(ISET_DAC_MA_TO_CODE(current_ma));
+    } else iset_dac_write_code(ISET_DAC_MA_TO_CODE(current_ma));
 }
 
-//---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// sets the specified code to the ISET_DAC
-void iset_dac_set_raw(uint16_t code) {
+// writes the specified 16bit code to the ISET_DAC
+void iset_dac_write_code(uint16_t code) {
 
     gpio_write(ISET_DAC_SPI_SS_GPIO, LOW);
     spi_write(ISET_DAC_SPI, code);
@@ -101,7 +101,7 @@ void ISET_DAC_TIMER_IRQ_HANDLER(void) {
             }
         }
 
-        iset_dac_set_raw(current_code);
+        iset_dac_write_code(current_code);
         clear_bits(ISET_DAC_TIMER->SR, TIM_SR_UIF);
     }
 }
