@@ -279,8 +279,8 @@ void shell_update(char *buffer) {
 
     else if (SHELL_CMD("clear")) {
 
-        debug_print("faults cleared.\n");
-        clear_fault();
+        debug_print("all faults cleared.\n");
+        load_clear_fault(LOAD_FAULT_ALL);
     }
 
     else if (SHELL_CMD("mask")) {

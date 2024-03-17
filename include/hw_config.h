@@ -15,11 +15,13 @@
 
 //---- LEDS ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#define LED_GREEN_GPIO_CLOCK    RCC_PERIPH_AHB1_GPIOC
-#define LED_GREEN_GPIO          GPIOC, 14
+// green LED
+#define LOAD_ENABLE_LED_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOC
+#define LOAD_ENABLE_LED_GPIO            GPIOC, 14
 
-#define LED_RED_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOC
-#define LED_RED_GPIO            GPIOC, 13
+// red LED
+#define FAULT_LED_GPIO_CLOCK        RCC_PERIPH_AHB1_GPIOC
+#define FAULT_LED_GPIO              GPIOC, 13
 
 //---- CMD SPI ---------------------------------------------------------------------------------------------------------------------------------------------------
 

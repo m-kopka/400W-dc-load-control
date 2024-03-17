@@ -53,7 +53,8 @@ typedef enum {
     LOAD_FAULT_FUSE_L2       = 0x0200,
     LOAD_FAULT_FUSE_R1       = 0x0400,
     LOAD_FAULT_FUSE_R2       = 0x0800,
-    LOAD_FAULT_EXTERNAL      = 0x1000
+    LOAD_FAULT_EXTERNAL      = 0x1000,
+    LOAD_FAULT_ALL           = 0x1fff
 
 } load_fault_t;
 
