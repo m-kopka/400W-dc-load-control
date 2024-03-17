@@ -55,10 +55,10 @@ void iset_dac_set_current(uint32_t current_ma, bool slew_limit) {
 
     if (slew_limit) {       // change the DAC value in regular intervals until the target current is reached
 
-        target_code = ISET_DAC_MA_INT_TO_RAW(current_ma);
+        target_code = ISET_DAC_MA_TO_CODE(current_ma);
         timer_start_count(ISET_DAC_TIMER);
 
-    } else iset_dac_set_raw(ISET_DAC_MA_INT_TO_RAW(current_ma));
+    } else iset_dac_set_raw(ISET_DAC_MA_TO_CODE(current_ma));
 }
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------

@@ -86,16 +86,6 @@ uint16_t temp_sensor_read_fixed(temp_sensor_t sensor) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// returns the raw 12bit ADC reading of a power transistor temperature (for calibration)
-uint16_t temp_sensor_read_raw(temp_sensor_t sensor) {
-
-    if (sensor != TEMP_L && sensor != TEMP_R) return 0;
-
-    return (adc_read((sensor == TEMP_L) ? TEMP_SEN_L_ADC_CH : TEMP_SEN_R_ADC_CH));
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 // returns the temperature sensor's fault flags
 temp_sensor_fault_t temp_sensor_read_faults(temp_sensor_t sensor) {
 

@@ -41,9 +41,6 @@ uint8_t temp_sensor_read(temp_sensor_t sensor);
 // measures a power transistor temperature and returns it [°C] in UQ8.2 fixed point value. Returns 1023 in case of a fault
 uint16_t temp_sensor_read_fixed(temp_sensor_t sensor);
 
-// returns the raw 12bit ADC reading of a power transistor temperature (for calibration)
-uint16_t temp_sensor_read_raw(temp_sensor_t sensor);
-
 // returns the temperature sensor's fault flags
 temp_sensor_fault_t temp_sensor_read_faults(temp_sensor_t sensor);
 

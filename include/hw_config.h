@@ -58,7 +58,7 @@
 #define ISET_DAC_TIMER_FREQUENCY        1000
 
 #define ISET_DAC_LSB_PER_MA(i_ma)       (-14836 * (int32_t)(i_ma) / 10000)
-#define ISET_DAC_MA_INT_TO_RAW(i_ma)    (ISET_DAC_LSB_PER_MA(i_ma) + 62569)
+#define ISET_DAC_MA_TO_CODE(i_ma)    (ISET_DAC_LSB_PER_MA(i_ma) + 62569)
 
 //---- VSEN ADC --------------------------------------------------------------------------------------------------------------------------------------------------
 

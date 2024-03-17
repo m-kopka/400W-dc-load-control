@@ -80,7 +80,7 @@ void temp_control_task(void) {
 
             } else if (fan_fault_cumulative_counter[fan] > 0) fan_fault_cumulative_counter[fan]--;
 
-            cmd_write((fan == FAN1) ? CMD_ADDRESS_RPM1 : CMD_ADDRESS_RPM2, fan_pwm);
+            cmd_write((fan == FAN1) ? CMD_ADDRESS_RPM1 : CMD_ADDRESS_RPM2, fan_rpm);
         }
 
         //---- FAN CONTROL ---------------------------------------------------------------------------------------------------------------------------------------
