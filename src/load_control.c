@@ -10,6 +10,8 @@ bool enabled = false;
 uint16_t fault_register = 0;
 uint16_t fault_mask = 0xffff;
 
+kernel_time_t last_enable_time = 0;
+
 void ext_fault_task(void);
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,6 +44,12 @@ void load_control_task(void) {
 
     while (1) {
 
+        if (enabled) {
+
+            uint16_t enable_time_s = kernel_get_time_since(last_enable_time) / 1000;
+            cmd_write(CMD_ADDRESS_ENA_TIME, enable_time_s);
+        }
+
         if (enabled && vi_sense_get_voltage() < discharge_voltage) {
 
             load_set_enable(false);
@@ -65,6 +73,8 @@ void load_set_enable(bool state) {
         gpio_write(LOAD_EN_R_GPIO, HIGH);
         iset_dac_set_current(cc_level, true);
         gpio_write(LED_GREEN_GPIO, LOW);
+
+        last_enable_time = kernel_get_time_ms();
 
     } else {
 

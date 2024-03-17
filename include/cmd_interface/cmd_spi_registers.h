@@ -31,10 +31,11 @@ typedef enum {
     CMD_ADDRESS_TEMP_R      = 0x31,
     CMD_ADDRESS_RPM1        = 0x38,
     CMD_ADDRESS_RPM2        = 0x39,
+    CMD_ADDRESS_ENA_TIME    = 0x40
 
 } cmd_register_t;
 
-#define CMD_REGISTER_COUNT ((CMD_ADDRESS_RPM2) + 1)
+#define CMD_REGISTER_COUNT ((CMD_ADDRESS_ENA_TIME) + 1)
 
 #define cmd_address_valid(address) (((address) < CMD_REGISTER_COUNT))
 
