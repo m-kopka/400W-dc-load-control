@@ -175,7 +175,7 @@ void shell_update(char *buffer) {
         shell_assert_argc(1);
 
         int current = atoi(args[1]);
-        if (current >= 0 && current <= 10000) {     // limit to 10A for now
+        if (current >= LOAD_MIN_CURRENT_MA && current <= LOAD_MAX_CURRENT_MA) {
 
             load_set_cc_level((uint16_t)current);
 

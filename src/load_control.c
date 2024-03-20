@@ -10,6 +10,8 @@ uint16_t fault_register = 0;
 uint16_t fault_mask = 0xffff;
 
 kernel_time_t last_enable_time = 0;
+uint32_t total_mas = 0;
+uint32_t total_mws = 0;
 
 void ext_fault_task(void);
 
@@ -49,18 +51,31 @@ void load_control_task(void) {
 
         if (enabled) {
 
+            uint32_t load_voltage_mv = vi_sense_get_voltage();
+            uint32_t load_current_ma = vi_sense_get_current();
+            uint32_t load_power_mw = load_voltage_mv * load_current_ma / 1000;
+
+            // handle overcurrent protection
+            if (load_current_ma > cc_level + 500) load_trigger_fault(LOAD_FAULT_OCP);
+
+            // handle overpower protection
+            if (load_power_mw > LOAD_MAX_POWER_MW) load_trigger_fault(LOAD_FAULT_OPP);
+
+            // disable the load if voltage dropped bellow threshold
+            if (load_voltage_mv < discharge_voltage) load_set_enable(false);
+
             uint16_t enable_time_s = kernel_get_time_since(last_enable_time) / 1000;
+
+            total_mas += load_current_ma / 10;
+            total_mws += load_power_mw / 10;
+
             cmd_write(CMD_ADDRESS_ENA_TIME, enable_time_s);
-        }
 
-        if (enabled && vi_sense_get_voltage() < discharge_voltage) {
+            uint16_t total_mah = total_mas / (60 * 60);
+            cmd_write(CMD_ADDRESS_TOTAL_MAH, total_mah);
 
-            load_set_enable(false);
-        }
-
-        if (enabled && vi_sense_get_voltage() * vi_sense_get_current() / 1000 > LOAD_MAX_POWER_MW) {
-
-            load_trigger_fault(LOAD_FAULT_OPP);
+            uint16_t total_mwh = total_mws / (60 * 60);
+            cmd_write(CMD_ADDRESS_TOTAL_MWH, total_mwh);
         }
 
         kernel_sleep_ms(100);
@@ -85,6 +100,8 @@ bool load_set_enable(bool state) {
         gpio_write(LOAD_ENABLE_LED_GPIO, LOW);
 
         last_enable_time = kernel_get_time_ms();
+        total_mas = 0;
+        total_mws = 0;
 
     } else {    // disable the load
 

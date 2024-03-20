@@ -22,7 +22,7 @@ typedef enum {
     CMD_ADDRESS_FAULTMSK1   = 0x10,
     CMD_ADDRESS_ENABLE      = 0x14,
     CMD_ADDRESS_CC_LEVEL    = 0x15,
-    CMD_ADDRESS_VIN         = 0x19,
+    CMD_ADDRESS_VIN         = 0x19, // HI LO
     CMD_ADDRESS_ITOT        = 0x20,
     CMD_ADDRESS_IL1         = 0x21,
     CMD_ADDRESS_IL2         = 0x22,
@@ -32,11 +32,13 @@ typedef enum {
     CMD_ADDRESS_TEMP_R      = 0x31,
     CMD_ADDRESS_RPM1        = 0x38,
     CMD_ADDRESS_RPM2        = 0x39,
-    CMD_ADDRESS_ENA_TIME    = 0x40
+    CMD_ADDRESS_ENA_TIME    = 0x40,  // HI LO
+    CMD_ADDRESS_TOTAL_MAH   = 0x42,
+    CMD_ADDRESS_TOTAL_MWH   = 0x43      //HI LO
 
 } cmd_register_t;
 
-#define CMD_REGISTER_COUNT ((CMD_ADDRESS_ENA_TIME) + 1)
+#define CMD_REGISTER_COUNT ((CMD_ADDRESS_TOTAL_MWH) + 1)
 
 #define cmd_address_valid(address) (((address) < CMD_REGISTER_COUNT))
 
