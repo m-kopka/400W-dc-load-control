@@ -1,6 +1,5 @@
 #include "load_control.h"
 #include "iset_dac.h"
-#include "internal_isen.h"
 #include "vi_sense.h"
 #include "cmd_interface/cmd_spi_driver.h"
 
@@ -36,12 +35,13 @@ void load_control_task(void) {
     gpio_set_mode(LOAD_EN_R_GPIO, GPIO_MODE_OUTPUT);
     
     iset_dac_init();
-    internal_isen_init();
 
     uint32_t vi_sense_stack[64];
     uint32_t ext_fault_stack[64];
-    kernel_create_task(vi_sense_task, vi_sense_stack, sizeof(vi_sense_stack), 100);
+    kernel_create_task(vi_sense_task, vi_sense_stack, sizeof(vi_sense_stack), 10);
     kernel_create_task(ext_fault_task, ext_fault_stack, sizeof(ext_fault_stack), 10);
+
+    kernel_sleep_ms(500);
 
     load_set_cc_level(LOAD_START_CC_LEVEL_MA);
 

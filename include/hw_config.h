@@ -59,8 +59,8 @@
 #define ISET_DAC_TIMER_IRQ_HANDLER      TIM1_BRK_TIM9_Handler
 #define ISET_DAC_TIMER_FREQUENCY        1000
 
-#define ISET_DAC_LSB_PER_MA(i_ma)       (-14836 * (int32_t)(i_ma) / 10000)
-#define ISET_DAC_MA_TO_CODE(i_ma)    (ISET_DAC_LSB_PER_MA(i_ma) + 62569)
+#define ISET_DAC_LSB_PER_MA(i_ma)       (-14919 * (int32_t)(i_ma) / 10000)
+#define ISET_DAC_MA_TO_CODE(i_ma)       (ISET_DAC_LSB_PER_MA(i_ma) + 62647)
 
 //---- VSEN ADC --------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -81,8 +81,8 @@
 #define VSEN_SRC_GPIO_CLOCK             RCC_PERIPH_AHB1_GPIOB
 #define VSEN_SRC_GPIO                   GPIOB, 2
 
-#define VSEN_ADC_RAW_TO_MV_INT(raw)     (((raw) * 516 / 25) - 91)
-#define VSEN_ADC_RAW_TO_MV_REM(raw)     (((raw) * 2069 / 100) - 91)
+#define VSEN_ADC_CODE_TO_MV_INT(code)   (((int32_t)(code) * 516 / 25) - 91)
+#define VSEN_ADC_CODE_TO_MV_REM(code)   (((int32_t)(code) * 2069 / 100) - 91)
 
 //---- ISEN ADC --------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -101,7 +101,7 @@
 #define ISEN_ADC_CONVST_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOB
 #define ISEN_ADC_CONVST_GPIO            GPIOB, 15
 
-#define ISEN_ADC_RAW_TO_MA(raw)     (((raw) * 1075 / 100) - 50)
+#define ISEN_ADC_CODE_TO_MA(code)   (((int32_t)(code) * 1075 / 100) - 50)
 
 //---- POWER BOARD ENABLE GPIOS ----------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,21 +113,23 @@
 
 //---- INTERNAL ADC CURRENT SENSE --------------------------------------------------------------------------------------------------------------------------------
 
-#define I_SEN_L1_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOA
-#define I_SEN_L1_GPIO           GPIOA, 3
-#define I_SEN_L1_ADC_CH         3
+#define ISEN_L1_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOA
+#define ISEN_L1_GPIO            GPIOA, 3
+#define ISEN_L1_ADC_CH          3
 
-#define I_SEN_L2_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOA
-#define I_SEN_L2_GPIO           GPIOA, 0
-#define I_SEN_L2_ADC_CH         0
+#define ISEN_L2_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOA
+#define ISEN_L2_GPIO            GPIOA, 0
+#define ISEN_L2_ADC_CH          0
 
-#define I_SEN_R1_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOA
-#define I_SEN_R1_GPIO           GPIOA, 1
-#define I_SEN_R1_ADC_CH         1
+#define ISEN_R1_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOA
+#define ISEN_R1_GPIO            GPIOA, 1
+#define ISEN_R1_ADC_CH          1
 
-#define I_SEN_R2_GPIO_CLOCK     RCC_PERIPH_AHB1_GPIOA
-#define I_SEN_R2_GPIO           GPIOA, 2
-#define I_SEN_R2_ADC_CH         2
+#define ISEN_R2_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOA
+#define ISEN_R2_GPIO            GPIOA, 2
+#define ISEN_R2_ADC_CH          2
+
+#define ISEN_INT_ADC_CODE_TO_MA(code)     (((int32_t)(code) * 2762 / 1000) - 12)
 
 //---- POWER TRANSISTOR TEMPERATURE SENSORS ----------------------------------------------------------------------------------------------------------------------
 

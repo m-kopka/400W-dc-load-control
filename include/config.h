@@ -26,13 +26,18 @@
 
 //---- LOAD CONTROL ----------------------------------------------------------------------------------------------------------------------------------------------
 
-#define LOAD_MIN_CURRENT_MA     200     // minimum CC level allowed [mA]
+#define LOAD_MIN_CURRENT_MA     300     // minimum CC level allowed [mA]
 #define LOAD_MAX_CURRENT_MA     42000   // maximum CC level allowed [mA]
 #define LOAD_START_CC_LEVEL_MA  1000    // CC level on startup [mA]
 
 //---- ISET DAC --------------------------------------------------------------------------------------------------------------------------------------------------
 
 #define SLEW_LIMIT_AMPS_PER_SECOND  20      // load slew rate when changing CC level or enabling the load [A/S]
+
+//---- VOLTAGE AND CURRENT SENSE ---------------------------------------------------------------------------------------------------------------------------------
+
+#define VI_SENSE_MIN_VOLTAGE 100        // lowest measured voltage (samples less than this will be equal to 0 mV)
+#define VI_SENSE_MIN_CURRENT 300        // lowest measured current (samples less than this will be equal to 0 mA)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 

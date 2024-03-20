@@ -5,7 +5,6 @@
 #include "load_control.h"
 #include "fan_control.h"
 #include "temp_sensors.h"
-#include "internal_isen.h"
 #include "vi_sense.h"
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------

@@ -1,17 +1,21 @@
 #include "vi_sense.h"
 #include "hal/spi.h"
-#include "internal_isen.h"
 #include "cmd_interface/cmd_spi_driver.h"
+
+//---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
 uint16_t __vsen_adc_read(void);
 uint16_t __isen_adc_read(void);
 
-uint32_t load_voltage_mv = 0;
-uint32_t load_current_ma = 0;
-vsen_src_t vsen_src = VSEN_SRC_INTERNAL;
+//---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
+
+uint32_t load_voltage_mv = 0;                   // current load voltage [mV]. Updated by the vi_sense_task
+uint32_t load_current_ma = 0;                   // current load current [mA]. Updated by the vi_sense_task
+vsen_src_t vsen_src = VSEN_SRC_INTERNAL;        // voltage sense source (internal or remote)
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
+// samples load voltage and current and rounds the results
 void vi_sense_task(void) {
 
     //---- VOLTAGE SENSE ADC SPI INIT ----------------------------------------------------------------------------------------------------------------------------
@@ -73,6 +77,8 @@ void vi_sense_task(void) {
 
     //------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    internal_isen_init();
+
     // wait for the voltages to settle after power-up and perform first dummy read to trigger the next conversion
     kernel_sleep_ms(500);
     __vsen_adc_read();
@@ -80,40 +86,48 @@ void vi_sense_task(void) {
 
     while (1) {
 
-        uint32_t vsen_sample = VSEN_ADC_RAW_TO_MV_INT(__vsen_adc_read());
-        uint32_t isen_sample = ISEN_ADC_RAW_TO_MA(__isen_adc_read());
+        static uint32_t vsen_sample_sum = 0;    // sum of unprocessed voltage samples
+        static uint32_t isen_sample_sum = 0;    // sum od unprocessed current samples
+        static uint8_t sample_count = 0;        // number of samples contained in the vsen and isen sample_sum
 
-        load_voltage_mv = (load_voltage_mv + vsen_sample) >> 1;
-        load_current_ma = (load_current_ma + isen_sample) >> 1;
+        // get new samples
+        vsen_sample_sum += __vsen_adc_read();
+        isen_sample_sum += __isen_adc_read();
+        sample_count++;
 
-        if (load_current_ma < 500) load_current_ma = 4 * internal_isen_read(CURRENT_L1);
+        if (sample_count == 16) {
 
-        load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
-        load_current_ma = (load_current_ma + 25) / 50 * 50;
+            // divide sample sum by sample count and convert to mV and mA
+            uint16_t vsen_sample = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 4) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 4);
+            uint16_t isen_sample = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 4);
 
-        cmd_write(CMD_ADDRESS_VIN, load_voltage_mv);
-        cmd_write(CMD_ADDRESS_ITOT, load_current_ma);
+            // calculate moving average
+            load_voltage_mv = (load_voltage_mv + vsen_sample) >> 1;
+            load_current_ma = (load_current_ma + isen_sample) >> 1;
 
-        kernel_sleep_ms(200);
+            // round to 50mV / 50mA
+            load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
+            load_current_ma = (load_current_ma + 25) / 50 * 50;
+
+            if (load_voltage_mv < VI_SENSE_MIN_VOLTAGE) load_voltage_mv = 0;
+            if (load_current_ma < VI_SENSE_MIN_CURRENT) load_current_ma = 0;
+
+            // update registers
+            cmd_write(CMD_ADDRESS_VIN, load_voltage_mv);
+            cmd_write(CMD_ADDRESS_ITOT, load_current_ma);
+
+            vsen_sample_sum = 0;
+            isen_sample_sum = 0;
+            sample_count = 0;
+        }
+
+        kernel_sleep_ms(10);
     }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-uint32_t vi_sense_get_voltage(void) {
-
-    return (load_voltage_mv);
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-uint32_t vi_sense_get_current(void) {
-
-    return (load_current_ma);
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
+// sets the VSEN ADC source (either VSEN_SRC_INTERNAL or VSEN_SRC_REMOTE)
 void vi_sense_set_vsen_source(vsen_src_t source) {
 
     if (source == VSEN_SRC_INTERNAL) gpio_write(VSEN_SRC_GPIO, LOW);
@@ -123,15 +137,9 @@ void vi_sense_set_vsen_source(vsen_src_t source) {
     vsen_src = source;
 }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-vsen_src_t vi_sense_get_vsen_source(void) {
-
-    return (vsen_src);
-}
-
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
+// samples the load voltage using the external ADC
 uint16_t __vsen_adc_read(void) {
 
     kernel_time_t start_time = kernel_get_time_ms();
@@ -152,6 +160,7 @@ uint16_t __vsen_adc_read(void) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// samples the load current using the external ADC
 uint16_t __isen_adc_read(void) {
 
     kernel_time_t start_time = kernel_get_time_ms();
