@@ -39,7 +39,7 @@ void load_cmd_task(void) {
             }
         }
 
-        if (load_get_enable() && kernel_get_time_since(last_watchdog_reload) >= 1000) {
+        if (load_get_status() & LOAD_STATUS_ENABLED && kernel_get_time_since(last_watchdog_reload) >= 1000) {
 
             load_trigger_fault(LOAD_FAULT_COMMUNICATION);
         }

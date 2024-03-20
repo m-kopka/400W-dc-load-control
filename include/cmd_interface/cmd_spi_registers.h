@@ -1,12 +1,17 @@
 #ifndef _CMD_SPI_REGISTERS_H_
 #define _CMD_SPI_REGISTERS_H_
 
+/*
+ *  LOAD CMD SPI specifications and address map
+ *  Martin Kopka 2024
+*/
+
 #include "common_defs.h"
 
 //---- DATA FRAME SPECIFICATIONS ---------------------------------------------------------------------------------------------------------------------------------
 
-#define CMD_FRAME_SYNC_BYTE    0xff
-#define CMD_READ_BIT           0x80000000
+#define CMD_FRAME_SYNC_BYTE    0xff         // first byte of each frame; slave starts receiving a frame after FRAME_SYNC_BYTE is received
+#define CMD_READ_BIT           0x80000000   // if R/!W bit is 0 => write command, if 1 => read command; bit 31 od a frame (frame sync byte excluded) bit 7 of address byte
 
 //---- REGISTER MAP ----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14,12 +19,10 @@ typedef enum {
 
     CMD_ADDRESS_ID          = 0x00,
     CMD_ADDRESS_STATUS      = 0x01,
-    CMD_ADDRESS_CONFIG1     = 0x02,
-    CMD_ADDRESS_CONFIG2     = 0x03,
+    CMD_ADDRESS_CONFIG      = 0x02,
     CMD_ADDRESS_WD_RELOAD   = 0x04,
-    CMD_ADDRESS_FAULT1      = 0x06,
-    CMD_ADDRESS_FAULT2      = 0x07,
-    CMD_ADDRESS_FAULTMSK1   = 0x10,
+    CMD_ADDRESS_FAULT       = 0x08,
+    CMD_ADDRESS_FAULTMSK    = 0x10,
     CMD_ADDRESS_ENABLE      = 0x14,
     CMD_ADDRESS_CC_LEVEL    = 0x15,
     CMD_ADDRESS_VIN         = 0x19, // HI LO
@@ -42,6 +45,24 @@ typedef enum {
 
 #define cmd_address_valid(address) (((address) < CMD_REGISTER_COUNT))
 
+//---- REGISTER DESCRIPTION --------------------------------------------------------------------------------------------------------------------------------------
+
+// slave always responds to CMD_ID read request with CMD_ID_CODE; writing to CMD_ID has no effect
+#define CMD_ID_CODE    0x10AD
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// status register bits
+typedef enum {
+
+    LOAD_STATUS_ENABLED  = (1 << 0),
+    LOAD_STATUS_FAULT    = (1 << 1),
+    LOAD_STATUS_READY    = (1 << 2)
+
+} load_status_t;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 typedef enum {
 
     LOAD_FAULT_COMMUNICATION = 0x0001,
@@ -62,9 +83,13 @@ typedef enum {
 
 } load_fault_t;
 
-#define LOAD_UNMASKABLE_FAULTS (LOAD_FAULT_OTP | LOAD_FAULT_TEMP_SENSOR_L | LOAD_FAULT_TEMP_SENSOR_R)
+// fault flags which are for safety reasons not allowed to be unmasked
+#define LOAD_ALWAYS_MASKED_FAULTS (LOAD_FAULT_OTP | LOAD_FAULT_TEMP_SENSOR_L | LOAD_FAULT_TEMP_SENSOR_R)
 
-#define LOAD_ID_CODE    0x10AD
+// fault mask on startup
+#define LOAD_DEFAULT_FAULT_MASK   (LOAD_FAULT_ALL & ~(LOAD_FAULT_COMMUNICATION | LOAD_FAULT_EXTERNAL))
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 #define LOAD_WD_RELOAD_KEY 0xBABA
 

@@ -147,24 +147,58 @@ void shell_update(char *buffer) {
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    // enables or disables the load
+    // enables or disables the load; returns the load enable state if the command is used without an argument
     else if (SHELL_CMD("en")) {
 
-        shell_assert_argc(1);
+        uint16_t status_reg = load_get_status();
 
-        if (COMPARE_ARG(1, "0")) {
+        if (argc == 1) {
 
-            load_set_enable(false);
-            debug_print("load disabled.\n");
+            debug_print("load is ");
+            debug_print((status_reg & LOAD_STATUS_ENABLED) ? "enabled.\n" : "disabled.\n");
+
+        } else {
+
+            if (!(status_reg & LOAD_STATUS_READY)) debug_print("(!) load is not ready.\n");
+            else if (status_reg & LOAD_STATUS_FAULT) debug_print("(!) load is in the fault state.\n");
+
+            else if (COMPARE_ARG(1, "0")) {
+
+                if (!(status_reg & LOAD_STATUS_ENABLED)) debug_print("load is already disabled.\n");
+                else {
+
+                    load_set_enable(false);
+                    debug_print("load disabled.\n");
+                }
+            }
+
+            else if (COMPARE_ARG(1, "1")) {
+
+                if (status_reg & LOAD_STATUS_ENABLED) debug_print("load is already enabled.\n");
+                else {
+
+                   load_set_enable(true);
+                    debug_print("load enabled.\n"); 
+                }
+            }
+
+            else debug_print("(!) invalid argument. Use \"1\" to enable or \"0\" to disable.\n");
         }
+    }
 
-        else if (COMPARE_ARG(1, "1")) {
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-            load_set_enable(true);
-            debug_print("load enabled.\n");
-        }
+    else if (SHELL_CMD("status")) {
 
-        else debug_print("invalid argument.\n");
+        uint16_t status = load_get_status();
+        uint16_t faults = load_get_faults(LOAD_FAULT_ALL);
+        uint16_t fault_mask = load_get_fault_mask();
+
+        debug_print("load is ");
+        debug_print((status & LOAD_STATUS_ENABLED) ? "ENABLED.\n" : "DISABLED.\n");
+
+        debug_print("fault state is ");
+        debug_print((status & LOAD_STATUS_FAULT) ? "ACTIVE.\n" : "NOT ACTIVE.\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -303,7 +337,7 @@ void shell_update(char *buffer) {
         debug_print("reboot - restart the system\n");
         debug_print("fan <speed> - set the fan speed\n");
         debug_print("rpm - read the fan speed\n");
-        debug_print("en <1 or 0> - enable or disable the load\n");
+        debug_print("en <1 or 0> - enables or disables the load. Returns the load enable state if the command is used without an argument\n");
         debug_print("iset <current_mA> - set the load CC level\n");
         debug_print("vsen - read the load input voltage\n");
         debug_print("isen - read the total load current\n");

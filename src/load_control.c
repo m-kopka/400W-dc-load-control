@@ -3,18 +3,25 @@
 #include "vi_sense.h"
 #include "cmd_interface/cmd_spi_driver.h"
 
-uint16_t cc_level = 0;
-static uint32_t discharge_voltage = 0;
-bool enabled = false;
-uint16_t fault_register = 0;
-uint16_t fault_mask = 0xffff;
+//---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
 
-kernel_time_t last_enable_time = 0;
-uint32_t total_mas = 0;
-uint32_t total_mws = 0;
+static bool enabled = false;        // load is enabled (sinking current)
+uint16_t cc_level_ma = 0;           // current to be drawn in the CC mode when the load is enabled [mA]
+uint32_t discharge_voltage_mv = 0;  // discharge voltage threshold; if the load voltage drops bellow this value, the load is automatically disabled [mV] (0 == feature is disabled)
+
+// load registers
+uint16_t status_register = 0;       // load status flags
+uint16_t fault_register  = 0;       // load fault flags
+uint16_t fault_mask      = 0;       // fault mask; if the corresponding bit in the fault mask is 0, the fault flag is ignored
+
+// statistics
+static kernel_time_t last_enable_time = 0;  // absolute time of last load enable (not cleared after a load disable)
+static uint32_t total_mas = 0;              // total cumulative current since the load was last enabled [mAs]
+static uint32_t total_mws = 0;              // total power dissipated since the load was last enabled [mWs]
+
+//---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
 void ext_fault_task(void);
-
 void __check_fault_conditions(void);
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -43,9 +50,13 @@ void load_control_task(void) {
     kernel_create_task(vi_sense_task, vi_sense_stack, sizeof(vi_sense_stack), 10);
     kernel_create_task(ext_fault_task, ext_fault_stack, sizeof(ext_fault_stack), 10);
 
-    kernel_sleep_ms(500);
-
+    // wait for the CMD SPI interface to be initialized and set the default CC level and fault mask
+    kernel_sleep_ms(100);
+    load_set_fault_mask(LOAD_DEFAULT_FAULT_MASK);
     load_set_cc_level(LOAD_START_CC_LEVEL_MA);
+
+    status_register |= LOAD_STATUS_READY;
+    cmd_write(CMD_ADDRESS_STATUS, status_register);
 
     while (1) {
 
@@ -55,19 +66,19 @@ void load_control_task(void) {
             uint32_t load_current_ma = vi_sense_get_current();
             uint32_t load_power_mw = load_voltage_mv * load_current_ma / 1000;
 
-            // handle overcurrent protection
-            if (load_current_ma > cc_level + 500) load_trigger_fault(LOAD_FAULT_OCP);
+            // overcurrent protection
+            if (load_current_ma > cc_level_ma + LOAD_OPP_RELATIVE_THRESHOLD_MA) load_trigger_fault(LOAD_FAULT_OCP);
 
-            // handle overpower protection
+            // overpower protection
             if (load_power_mw > LOAD_MAX_POWER_MW) load_trigger_fault(LOAD_FAULT_OPP);
 
             // disable the load if voltage dropped bellow threshold
-            if (load_voltage_mv < discharge_voltage) load_set_enable(false);
+            if (load_voltage_mv < discharge_voltage_mv) load_set_enable(false);
 
             uint16_t enable_time_s = kernel_get_time_since(last_enable_time) / 1000;
 
-            total_mas += load_current_ma / 10;
-            total_mws += load_power_mw / 10;
+            total_mas += load_current_ma / (1000 / LOAD_CONTROL_UPDATE_PERIOD_MS);
+            total_mws += load_power_mw / (1000 / LOAD_CONTROL_UPDATE_PERIOD_MS);
 
             cmd_write(CMD_ADDRESS_ENA_TIME, enable_time_s);
 
@@ -78,13 +89,13 @@ void load_control_task(void) {
             cmd_write(CMD_ADDRESS_TOTAL_MWH, total_mwh);
         }
 
-        kernel_sleep_ms(100);
+        kernel_sleep_ms(LOAD_CONTROL_UPDATE_PERIOD_MS);
     }
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// enables or disables the load; returns true if the action was successful
+// enables or disables the load; returns true if the action was successful; returns false if the load is in a fault state
 bool load_set_enable(bool state) {
 
     if (state == enabled) return true;                          // load is already in the specified state
@@ -96,7 +107,7 @@ bool load_set_enable(bool state) {
         iset_dac_set_current(LOAD_MIN_CURRENT_MA, false);
         gpio_write(LOAD_EN_L_GPIO, HIGH);
         gpio_write(LOAD_EN_R_GPIO, HIGH);
-        iset_dac_set_current(cc_level, true);
+        iset_dac_set_current(cc_level_ma, true);
         gpio_write(LOAD_ENABLE_LED_GPIO, LOW);
 
         last_enable_time = kernel_get_time_ms();
@@ -113,14 +124,13 @@ bool load_set_enable(bool state) {
     }
 
     enabled = state;
-    cmd_write(CMD_ADDRESS_STATUS, state);       // update the status register
+
+    // update the status register
+    if (state) status_register |=  LOAD_STATUS_ENABLED;
+    else       status_register &= ~LOAD_STATUS_ENABLED;
+    cmd_write(CMD_ADDRESS_STATUS, status_register);
 
     return true;
-}
-
-bool load_get_enable(void) {
-
-    return enabled;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -134,76 +144,88 @@ void load_set_cc_level(uint16_t current_ma) {
 
     if (enabled) iset_dac_set_current(current_ma, true);    // if the load is enabled write new value to the I_SET dac with a slew rate limit
 
-    cc_level = current_ma;
+    cc_level_ma = current_ma;
     cmd_write(CMD_ADDRESS_CC_LEVEL, current_ma);        // update the register
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// sets the discharge threshold voltage; if the load voltage drops bellow this value, the load is automatically disabled
 void load_set_discharge_voltage(uint32_t voltage_mv) {
 
-    discharge_voltage = voltage_mv;
+    discharge_voltage_mv = voltage_mv;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// sets the specified fault in the fault register and puts the load in a fault state if the fault is masked
 void load_trigger_fault(load_fault_t fault) {
 
     fault_register |= fault;
     __check_fault_conditions();     // test fault status with fault mask and disable the load if the fault conditions are met
     
-    cmd_write(CMD_ADDRESS_FAULT1, fault_register);
-}
-
-load_fault_t load_get_faults(load_fault_t mask) {
-
-    return (fault_register & mask);
+    cmd_write(CMD_ADDRESS_FAULT, fault_register);       // update the fault register
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-void load_set_fault_mask(load_fault_t mask) {
-
-    fault_mask = mask | LOAD_UNMASKABLE_FAULTS;
-    __check_fault_conditions();     // test fault status with fault mask and disable the load if the fault conditions are met
-}
-
-uint16_t load_get_fault_mask(void) {
-
-    return fault_mask;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
+// clears a load fault flag
 void load_clear_fault(load_fault_t fault) {
 
     fault_register &= ~fault;
+    __check_fault_conditions();     // test fault status with fault mask and disable the load if the fault conditions are met
 
-    // fault condition no longer met, external fault is ignored as the fault led isnt on during ext fault
-    if (!((fault_register & ~LOAD_FAULT_EXTERNAL) & fault_mask)) {
-
-        gpio_write(FAULT_LED_GPIO, HIGH);
-        gpio_set_mode(EXT_FAULT_GPIO, GPIO_MODE_INPUT);
-    }
-
-    cmd_write(CMD_ADDRESS_FAULT1, fault_register);
+    cmd_write(CMD_ADDRESS_FAULT, fault_register);       // update the fault register
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// sets the load fault mask
+void load_set_fault_mask(load_fault_t mask) {
+
+    fault_mask = mask | LOAD_ALWAYS_MASKED_FAULTS;      // don't allow the always masked faults to be cleared
+    __check_fault_conditions();                         // test fault status with fault mask and disable the load if the fault conditions are met
+}
+
+//---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
+
+// checks if the current state of the fault register and fault mask should cause a load fault state
+// if yes, it disables the load and updates the fault state and status register
+// called after fault register of fault mask is updated
 void __check_fault_conditions(void) {
 
+    // if any of the fault flags are masked
     if (fault_register & fault_mask) {
 
         load_set_enable(false);
 
+        // external fault doesn't turn on the FAULT LED and doesn't cause the module to pull down its FAULT pin
         if (fault_register & ~LOAD_FAULT_EXTERNAL) {
 
             gpio_write(EXT_FAULT_GPIO, LOW);
             gpio_set_mode(EXT_FAULT_GPIO, GPIO_MODE_OUTPUT);
-            
-            gpio_write(FAULT_LED_GPIO, LOW);        // external fault doesnt turn on the LED
+            gpio_write(FAULT_LED_GPIO, LOW);
+
+        } else {    // only external fault is triggered
+
+            gpio_set_mode(EXT_FAULT_GPIO, GPIO_MODE_INPUT);
+            gpio_write(FAULT_LED_GPIO, HIGH);
         }
+
+        status_register |= LOAD_STATUS_FAULT;       // set the fault bit in the status register
+
+    } else {    // no masked faults are triggered
+
+        gpio_set_mode(EXT_FAULT_GPIO, GPIO_MODE_INPUT);
+        gpio_write(FAULT_LED_GPIO, HIGH);
+
+        status_register &= ~LOAD_STATUS_FAULT;   // clear the fault bit in the status register
     }
+    
+    cmd_write(CMD_ADDRESS_STATUS, status_register);     // update the status register
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 void ext_fault_task(void) {
 
