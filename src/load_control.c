@@ -58,6 +58,11 @@ void load_control_task(void) {
             load_set_enable(false);
         }
 
+        if (enabled && vi_sense_get_voltage() * vi_sense_get_current() / 1000 > LOAD_MAX_POWER_MW) {
+
+            load_trigger_fault(LOAD_FAULT_OPP);
+        }
+
         kernel_sleep_ms(100);
     }
 }

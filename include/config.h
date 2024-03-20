@@ -28,6 +28,8 @@
 
 #define LOAD_MIN_CURRENT_MA     300     // minimum CC level allowed [mA]
 #define LOAD_MAX_CURRENT_MA     42000   // maximum CC level allowed [mA]
+#define LOAD_MAX_POWER_MW       420000  // maximum load power allowed [mW]
+
 #define LOAD_START_CC_LEVEL_MA  1000    // CC level on startup [mA]
 
 //---- ISET DAC --------------------------------------------------------------------------------------------------------------------------------------------------
