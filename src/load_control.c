@@ -96,6 +96,11 @@ bool load_set_enable(bool state) {
     return true;
 }
 
+bool load_get_enable(void) {
+
+    return enabled;
+}
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 // sets the load current in Constant Current mode

@@ -12,6 +12,8 @@ void load_control_task(void);
 // enables or disables the load; returns true if the action was successful
 bool load_set_enable(bool state);
 
+bool load_get_enable(void);
+
 // sets the load current in Constant Current mode
 void load_set_cc_level(uint16_t current_ma);
 
