@@ -40,7 +40,8 @@ typedef enum {
     CMD_ADDRESS_FAN_RPM2        = 0x39,     // FAN2 RPM register (r)
     CMD_ADDRESS_TOTAL_TIME_L    = 0x40,     // Load Total Running Time low register (r)
     CMD_ADDRESS_TOTAL_TIME_H    = 0x41,     // Load Total Running Time high register (r)
-    CMD_ADDRESS_TOTAL_MAH       = 0x42,     // Load Total Milliamphours register (r)
+    CMD_ADDRESS_TOTAL_MAH_L     = 0x42,     // Load Total Milliamphours low register (r)
+    CMD_ADDRESS_TOTAL_MAH_H     = 0x43,     // Load Total Milliamphours high register (r)
     CMD_ADDRESS_TOTAL_MWH_L     = 0x44,     // Load Total Milliwatthours low register (r)
     CMD_ADDRESS_TOTAL_MWH_H     = 0x45,     // Load Total Milliwatthours high register (r)
 
@@ -74,7 +75,6 @@ typedef enum {
 
     LOAD_CONFIG_VSEN_SRC        = (1 <<  4),    // 0 -> internal, 1 -> remote (this bit is ignored in write commands if the AUTO_VSEN_SRC bit is set)
     LOAD_CONFIG_AUTO_VSEN_SRC   = (1 <<  5),    // enable automatic switching of VSEN source
-    LOAD_CONFIG_STAT_RESET      = (1 << 15)     // write 1 to reset the load stats (total time, mAh and mWh)
     
 } load_config_t;
 

@@ -106,7 +106,8 @@ void load_control_task(void) {
             cmd_write(CMD_ADDRESS_TOTAL_TIME_H, enable_time_s >> 16);
 
             uint32_t total_mah = total_mas / (60 * 60);
-            cmd_write(CMD_ADDRESS_TOTAL_MAH, total_mah);
+            cmd_write(CMD_ADDRESS_TOTAL_MAH_L, total_mah & 0xffff);
+            cmd_write(CMD_ADDRESS_TOTAL_MAH_H, total_mah >> 16);
 
             uint32_t total_mwh = total_mws / (60 * 60);
             cmd_write(CMD_ADDRESS_TOTAL_MWH_L, total_mwh & 0xffff);
