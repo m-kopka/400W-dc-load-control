@@ -31,6 +31,8 @@ void vi_sense_task(void);
 // sets the VSEN ADC source (either VSEN_SRC_INTERNAL or VSEN_SRC_REMOTE)
 void vi_sense_set_vsen_source(vsen_src_t source);
 
+void vi_sense_set_automatic_vsen_source(bool enable);
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 // returns the selected voltage sense source

@@ -45,6 +45,8 @@
 #define VI_SENSE_MIN_VOLTAGE 100        // lowest measured voltage (samples less than this will be equal to 0 mV)
 #define VI_SENSE_MIN_CURRENT 300        // lowest measured current (samples less than this will be equal to 0 mA)
 
+#define VI_SENSE_AUTO_VSENSRC_THRESHOLD_CODE    10   // threshold ADC code for switching back to internal source from remote sense
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _CONFIG_H_ */

@@ -73,6 +73,7 @@ typedef enum {
 typedef enum {
 
     LOAD_CONFIG_VSEN_SRC        = (1 <<  4),    // 0 -> internal, 1 -> remote (this bit is ignored in write commands if the AUTO_VSEN_SRC bit is set)
+    LOAD_CONFIG_AUTO_VSEN_SRC   = (1 <<  5),    // enable automatic switching of VSEN source
     LOAD_CONFIG_STAT_RESET      = (1 << 15)     // write 1 to reset the load stats (total time, mAh and mWh)
     
 } load_config_t;

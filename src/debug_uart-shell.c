@@ -295,15 +295,22 @@ void shell_update(char *buffer) {
 
             if (COMPARE_ARG(1, "internal")) {
 
+                vi_sense_set_automatic_vsen_source(false);
                 vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
                 debug_print("voltage sense source set to internal\n");
         
             } else if (COMPARE_ARG(1, "remote")) {
 
+                vi_sense_set_automatic_vsen_source(false);
                 vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
                 debug_print("voltage sense source set to remote\n");
 
-            } else debug_print("(!) invalid argument. Use \"internal\" or \"remote\".\n");
+            } else if (COMPARE_ARG(1, "auto")) {
+
+                vi_sense_set_automatic_vsen_source(true);
+                debug_print("voltage sense source set to auto\n");
+
+            } else debug_print("(!) invalid argument. Use \"internal\", \"remote\" or \"auto\".\n");
         }
     }
 

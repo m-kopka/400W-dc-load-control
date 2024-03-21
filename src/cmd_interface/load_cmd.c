@@ -23,8 +23,17 @@ void load_cmd_task(void) {
 
                 if (address == CMD_ADDRESS_CONFIG) {
 
-                    if (data & LOAD_CONFIG_VSEN_SRC) vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
-                    else vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
+                    if (data & LOAD_CONFIG_AUTO_VSEN_SRC) vi_sense_set_automatic_vsen_source(true);
+                    else if (data & LOAD_CONFIG_VSEN_SRC) {
+                        
+                        vi_sense_set_automatic_vsen_source(false);
+                        vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
+                    
+                    } else {
+                        
+                        vi_sense_set_automatic_vsen_source(false);
+                        vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
+                    }
                 }
 
                 if (address == CMD_ADDRESS_ENABLE) {

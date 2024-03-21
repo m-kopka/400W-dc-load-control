@@ -12,6 +12,7 @@ uint16_t __isen_adc_read(void);
 uint32_t load_voltage_mv = 0;                   // current load voltage [mV]. Updated by the vi_sense_task
 uint32_t load_current_ma = 0;                   // current load current [mA]. Updated by the vi_sense_task
 vsen_src_t vsen_src = VSEN_SRC_INTERNAL;        // voltage sense source (internal or remote)
+bool auto_vsen_src_enabled = false;             // automatic switching of voltage sense source enabled
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,23 +92,25 @@ void vi_sense_task(void) {
         static uint8_t sample_count = 0;        // number of samples contained in the vsen and isen sample_sum
 
         // get new samples
-        vsen_sample_sum += __vsen_adc_read();
-        isen_sample_sum += __isen_adc_read();
+        uint16_t vsen_latest_sample = __vsen_adc_read();
+        uint16_t isen_latest_sample = __isen_adc_read();
+        vsen_sample_sum += vsen_latest_sample;
+        isen_sample_sum += isen_latest_sample;
         sample_count++;
 
         if (sample_count == 8) {
 
             // divide sample sum by sample count and convert to mV and mA
-            uint16_t vsen_sample = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 3) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 3);
-            uint16_t isen_sample = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 3);
+            uint16_t vsen_new_value = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 3) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 3);
+            uint16_t isen_new_value = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 3);
 
             // calculate a moving average for voltage
-            if (load_voltage_mv > 0) load_voltage_mv = (load_voltage_mv + vsen_sample) >> 1;
-            else load_voltage_mv = vsen_sample;
+            if (load_voltage_mv > 0) load_voltage_mv = (load_voltage_mv + vsen_new_value) >> 1;
+            else load_voltage_mv = vsen_new_value;
 
             // calculate a moving average for current
-            if (load_current_ma > 0) load_current_ma = (load_current_ma + isen_sample) >> 1;
-            else load_current_ma = isen_sample;
+            if (load_current_ma > 0) load_current_ma = (load_current_ma + isen_new_value) >> 1;
+            else load_current_ma = isen_new_value;
 
             // round to 50mV / 50mA
             load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
@@ -123,6 +126,35 @@ void vi_sense_task(void) {
             vsen_sample_sum = 0;
             isen_sample_sum = 0;
             sample_count = 0;
+
+            // handle automatic voltage sense source switching
+            if (auto_vsen_src_enabled) {
+
+                // if the current VSEN source is internal and load voltage is not 0, try sampling voltage with remote sense
+                // if the measured voltage is not zero, switch to remote sense
+                if (vsen_src == VSEN_SRC_INTERNAL) {
+
+                    if (load_voltage_mv > 0) {
+
+                        // switch mux to remote sense and perform a dummy read to trigger a conversion with remote sense
+                        gpio_write(VSEN_SRC_GPIO, HIGH);
+                        __vsen_adc_read();
+
+                        // wait for the conversion to finish
+                        for (volatile int i = 0; i < 10; i++);
+
+                        // if the measured code is above threshold, switch to remote sense
+                        if (__vsen_adc_read() >= VI_SENSE_AUTO_VSENSRC_THRESHOLD_CODE) vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
+                        else {
+
+                            gpio_write(VSEN_SRC_GPIO, LOW);
+                            __vsen_adc_read();
+                        }
+                    }
+
+                // if the current VSEN source is remote and voltage is 0, switch to internal
+                } else if (vsen_latest_sample < VI_SENSE_AUTO_VSENSRC_THRESHOLD_CODE) vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
+            }
         }
 
         kernel_sleep_ms(5);
@@ -147,6 +179,16 @@ void vi_sense_set_vsen_source(vsen_src_t source) {
     } else return;
 
     vsen_src = source;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+void vi_sense_set_automatic_vsen_source(bool enable) {
+
+    auto_vsen_src_enabled = enable;
+
+    if (enable) cmd_set_bit(CMD_ADDRESS_CONFIG, LOAD_CONFIG_AUTO_VSEN_SRC);
+    else cmd_clear_bit(CMD_ADDRESS_CONFIG, LOAD_CONFIG_AUTO_VSEN_SRC);
 }
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
