@@ -1,6 +1,14 @@
 #ifndef _DEBUG_UART_H_
 #define _DEBUG_UART_H_
 
+/*
+ *  Debug UART interface
+ *  Martin Kopka 2024
+ * 
+ *  This module allow the user to debug the device using a serial interface
+ *  It is also possible to control the device using shell commands
+*/
+
 #include "common_defs.h"
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------

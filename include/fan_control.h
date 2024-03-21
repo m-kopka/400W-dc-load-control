@@ -1,6 +1,15 @@
 #ifndef _FAN_CONTROL_H_
 #define _FAN_CONTROL_H_
 
+/*
+ *  Fan PWM controller and RPM counter
+ *  Martin Kopka 2024
+ * 
+ *  This module controls the fan speed
+ *  if the required fan pwm is changed it slowly ramps the fans to minimize the current draw of the fans
+ *  it also meassures the speed of each fan in by using a frequency counter
+*/
+
 #include "common_defs.h"
 
 typedef enum {

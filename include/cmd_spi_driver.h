@@ -4,6 +4,11 @@
 /*
  *  Load CMD SPI interface slave driver
  *  Martin Kopka 2024
+ * 
+ *  This module handles communication with the master (interface panel) via SPI
+ *  write commands from the master are parsed into a RX fifo to be read asynchronously by the cmd_spi_task
+ *  slave updates its values provided to the master by writing to its virtual registers
+ *  values of these registers are then sent to the master as a response to a master read command
  */
 
 #include "common_defs.h"
