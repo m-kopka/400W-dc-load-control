@@ -94,11 +94,12 @@ void load_control_task(void) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// enables or disables the load; returns true if the action was successful; returns false if the load is in a fault state
+// enables or disables the load; returns true if the action was successful; returns false if the load is in a fault state or not ready
 bool load_set_enable(bool state) {
 
-    if (state == enabled) return true;                          // load is already in the specified state
-    if (state && (fault_register & fault_mask)) return false;   // load is in fault; enable not allowed until all masked faults are cleared
+    if (state == enabled) return true;                                  // load is already in the specified state
+    if (state && !(status_register & LOAD_STATUS_READY)) return false;   // load is performing a self test (not ready)
+    if (state && (fault_register & fault_mask)) return false;           // load is in fault; enable not allowed until all masked faults are cleared
 
     if (state) {    // enable the load
 
@@ -182,7 +183,7 @@ void load_clear_fault(load_fault_t fault) {
 // sets the load fault mask
 void load_set_fault_mask(load_fault_t mask) {
 
-    fault_mask = mask | LOAD_ALWAYS_MASKED_FAULTS;      // don't allow the always masked faults to be cleared
+    fault_mask = mask | LOAD_NON_MASKABLE_FAULTS;       // don't allow the always masked faults to be cleared
     __check_fault_conditions();                         // test fault status with fault mask and disable the load if the fault conditions are met
 }
 
@@ -204,7 +205,7 @@ void load_set_ready(bool ready) {
 // called after fault register of fault mask is updated
 void __check_fault_conditions(void) {
 
-    // if any of the fault flags are masked
+    // if any of the fault flags are not masked
     if (fault_register & fault_mask) {
 
         load_set_enable(false);
@@ -224,7 +225,7 @@ void __check_fault_conditions(void) {
 
         status_register |= LOAD_STATUS_FAULT;       // set the fault bit in the status register
 
-    } else {    // no masked faults are triggered
+    } else {    // unmasked faults are triggered
 
         gpio_set_mode(EXT_FAULT_GPIO, GPIO_MODE_INPUT);
         gpio_write(FAULT_LED_GPIO, HIGH);

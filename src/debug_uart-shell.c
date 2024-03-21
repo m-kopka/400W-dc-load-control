@@ -102,43 +102,43 @@ void shell_update(char *buffer) {
 
         debug_print("\nCOM fault\t");
         debug_print((faults & LOAD_FAULT_COM) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_COM) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_COM) ? "(enabled)\n" : "(masked)\n");
         debug_print("OTP fault\t");
         debug_print((faults & LOAD_FAULT_OTP) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_OTP) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_OTP) ? "(enabled)\n" : "(masked)\n");
         debug_print("OCP fault\t");
         debug_print((faults & LOAD_FAULT_OCP) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_OCP) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_OCP) ? "(enabled)\n" : "(masked)\n");
         debug_print("OPP fault\t");
         debug_print((faults & LOAD_FAULT_OPP) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_OPP) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_OPP) ? "(enabled)\n" : "(masked)\n");
         debug_print("TEMP_L fault\t");
         debug_print((faults & LOAD_FAULT_TEMP_L) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_TEMP_L) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_TEMP_L) ? "(enabled)\n" : "(masked)\n");
         debug_print("TEMP_R fault\t");
         debug_print((faults & LOAD_FAULT_TEMP_R) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_TEMP_R) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_TEMP_R) ? "(enabled)\n" : "(masked)\n");
         debug_print("FAN1 fault\t");
         debug_print((faults & LOAD_FAULT_FAN1) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_FAN1) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_FAN1) ? "(enabled)\n" : "(masked)\n");
         debug_print("FAN2 fault\t");
         debug_print((faults & LOAD_FAULT_FAN2) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_FAN2) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_FAN2) ? "(enabled)\n" : "(masked)\n");
         debug_print("FUSE_L1 fault\t");
         debug_print((faults & LOAD_FAULT_FUSE_L1) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_FUSE_L1) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_FUSE_L1) ? "(enabled)\n" : "(masked)\n");
         debug_print("FUSE_L2 fault\t");
         debug_print((faults & LOAD_FAULT_FUSE_L2) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_FUSE_L2) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_FUSE_L2) ? "(enabled)\n" : "(masked)\n");
         debug_print("FUSE_R1 fault\t");
         debug_print((faults & LOAD_FAULT_FUSE_R1) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_FUSE_R1) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_FUSE_R1) ? "(enabled)\n" : "(masked)\n");
         debug_print("FUSE_R2 fault\t");
         debug_print((faults & LOAD_FAULT_FUSE_R2) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_FUSE_R2) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_FUSE_R2) ? "(enabled)\n" : "(masked)\n");
         debug_print("EXTERNAL fault\t");
         debug_print((faults & LOAD_FAULT_EXTERNAL) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_EXTERNAL) ? "(masked)\n" : "(not masked)\n");
+        debug_print((fault_mask & LOAD_FAULT_EXTERNAL) ? "(enabled)\n" : "(masked)\n");
     }
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

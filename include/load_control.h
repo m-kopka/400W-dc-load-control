@@ -9,7 +9,7 @@
 // initializes the load and handles various load functions on runtime
 void load_control_task(void);
 
-// enables or disables the load; returns true if the action was successful; returns false if the load is in a fault state
+// enables or disables the load; returns true if the action was successful; returns false if the load is in a fault state or not ready
 bool load_set_enable(bool state);
 
 // sets the load current in Constant Current mode

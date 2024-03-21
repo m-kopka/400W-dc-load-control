@@ -93,8 +93,8 @@ typedef enum {
 
 } load_fault_t;
 
-// fault flags which are for safety reasons not allowed to be unmasked
-#define LOAD_ALWAYS_MASKED_FAULTS (LOAD_FAULT_OTP | LOAD_FAULT_OPP | LOAD_FAULT_TEMP_L | LOAD_FAULT_TEMP_R)
+// fault flags which are for safety reasons not allowed to be masked
+#define LOAD_NON_MASKABLE_FAULTS (LOAD_FAULT_OTP | LOAD_FAULT_OPP | LOAD_FAULT_TEMP_L | LOAD_FAULT_TEMP_R)
 
 // fault mask on startup
 #define LOAD_DEFAULT_FAULT_MASK   (LOAD_FAULT_ALL & ~(LOAD_FAULT_COM | LOAD_FAULT_EXTERNAL))
