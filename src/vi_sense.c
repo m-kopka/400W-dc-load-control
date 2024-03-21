@@ -113,7 +113,7 @@ void vi_sense_task(void) {
             if (load_current_ma < VI_SENSE_MIN_CURRENT) load_current_ma = 0;
 
             // update registers
-            cmd_write(CMD_ADDRESS_VOLTAGE, load_voltage_mv);
+            cmd_write(CMD_ADDRESS_VOLTAGE, load_voltage_mv / 10);
             cmd_write(CMD_ADDRESS_CURRENT, load_current_ma);
 
             vsen_sample_sum = 0;

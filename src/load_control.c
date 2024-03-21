@@ -72,18 +72,20 @@ void load_control_task(void) {
             // disable the load if voltage dropped bellow threshold
             if (load_voltage_mv < discharge_voltage_mv) load_set_enable(false);
 
-            uint16_t enable_time_s = kernel_get_time_since(last_enable_time) / 1000;
+            uint32_t enable_time_s = kernel_get_time_since(last_enable_time) / 1000;
 
             total_mas += load_current_ma / (1000 / LOAD_CONTROL_UPDATE_PERIOD_MS);
             total_mws += load_power_mw / (1000 / LOAD_CONTROL_UPDATE_PERIOD_MS);
 
-            cmd_write(CMD_ADDRESS_TOTAL_TIME_L, enable_time_s);
+            cmd_write(CMD_ADDRESS_TOTAL_TIME_L, enable_time_s & 0xffff);
+            cmd_write(CMD_ADDRESS_TOTAL_TIME_H, enable_time_s >> 16);
 
-            uint16_t total_mah = total_mas / (60 * 60);
+            uint32_t total_mah = total_mas / (60 * 60);
             cmd_write(CMD_ADDRESS_TOTAL_MAH, total_mah);
 
-            uint16_t total_mwh = total_mws / (60 * 60);
-            cmd_write(CMD_ADDRESS_TOTAL_MWH_L, total_mwh);
+            uint32_t total_mwh = total_mws / (60 * 60);
+            cmd_write(CMD_ADDRESS_TOTAL_MWH_L, total_mwh & 0xffff);
+            cmd_write(CMD_ADDRESS_TOTAL_MWH_H, total_mwh >> 16);
         }
 
         kernel_sleep_ms(LOAD_CONTROL_UPDATE_PERIOD_MS);
