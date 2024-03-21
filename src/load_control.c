@@ -54,6 +54,8 @@ void load_control_task(void) {
     kernel_sleep_ms(100);
     load_set_fault_mask(LOAD_DEFAULT_FAULT_MASK);
     load_set_cc_level(LOAD_START_CC_LEVEL_MA);
+    cmd_write(CMD_ADDRESS_AVLBL_CURRENT, LOAD_AVAILABLE_CURRENT_A);
+    cmd_write(CMD_ADDRESS_AVLBL_POWER, LOAD_AVAILABLE_POWER_W);
 
     while (1) {
 
@@ -64,10 +66,10 @@ void load_control_task(void) {
             uint32_t load_power_mw = load_voltage_mv * load_current_ma / 1000;
 
             // overcurrent protection
-            if (load_current_ma > LOAD_OPP_THRESHOLD_MA) load_trigger_fault(LOAD_FAULT_OCP);
+            if (load_current_ma > LOAD_OCP_THRESHOLD_MA) load_trigger_fault(LOAD_FAULT_OCP);
 
             // overpower protection
-            if (load_power_mw > LOAD_MAX_POWER_MW) load_trigger_fault(LOAD_FAULT_OPP);
+            if (load_power_mw > LOAD_OPP_THRESHOLD_MW) load_trigger_fault(LOAD_FAULT_OPP);
 
             // fuse fault handling
             if (load_current_ma > LOAD_MIN_CURRENT_MA && !iset_dac_is_in_transient()) {
@@ -180,6 +182,7 @@ void load_set_cc_level(uint16_t current_ma) {
 void load_set_discharge_voltage(uint32_t voltage_mv) {
 
     discharge_voltage_mv = voltage_mv;
+    cmd_write(CMD_ADDRESS_DISCH_LEVEL, voltage_mv);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -187,7 +190,10 @@ void load_set_discharge_voltage(uint32_t voltage_mv) {
 // sets the specified fault in the fault register and puts the load in a fault state if the fault is masked
 void load_trigger_fault(load_fault_t fault) {
 
+    uint16_t old_fault_register = fault_register;
     fault_register |= fault;
+    if (old_fault_register == fault_register) return;   // fault already triggered, skip
+
     __check_fault_conditions();     // test fault status with fault mask and disable the load if the fault conditions are met
     
     cmd_write(CMD_ADDRESS_FAULT, fault_register);       // update the fault register
@@ -211,6 +217,8 @@ void load_set_fault_mask(load_fault_t mask) {
 
     fault_mask = mask | LOAD_NON_MASKABLE_FAULTS;       // don't allow the always masked faults to be cleared
     __check_fault_conditions();                         // test fault status with fault mask and disable the load if the fault conditions are met
+
+    cmd_write(CMD_ADDRESS_FAULT_MASK, fault_mask);       // update the fault mask register
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -264,6 +272,7 @@ void __check_fault_conditions(void) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// debounces the external fault pin and triggers EXT faults
 void ext_fault_task(void) {
 
     rcc_enable_peripheral_clock(EXT_FAULT_GPIO_CLOCK);
