@@ -2,8 +2,6 @@
 #define _LOAD_CMD_H_
 
 #include "common_defs.h"
-#include "cmd_interface/cmd_spi_driver.h"
-#include "cmd_interface/cmd_spi_registers.h"
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 #define _LOAD_CONTROL_H_
 
 #include "common_defs.h"
-#include "cmd_interface/cmd_spi_driver.h"
+#include "cmd_spi_driver.h"
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 

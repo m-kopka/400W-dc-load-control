@@ -1,6 +1,6 @@
 #include "temp_control.h"
 #include "load_control.h"
-#include "cmd_interface/cmd_spi_driver.h"
+#include "cmd_spi_driver.h"
 
 //---- ENUMERATIONS ----------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 #include "load_control.h"
+#include "cmd_spi_driver.h"
 #include "iset_dac.h"
 #include "vi_sense.h"
-#include "cmd_interface/cmd_spi_driver.h"
 
 //---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -8,7 +8,7 @@
 #include "hal/iwdg.h"
 #include "load_control.h"
 #include "temp_control.h"
-#include "cmd_interface/load_cmd.h"
+#include "cmd_spi_task.h"
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -1,4 +1,5 @@
-#include "cmd_interface/load_cmd.h"
+#include "cmd_spi_task.h"
+#include "cmd_spi_driver.h"
 #include "load_control.h"
 #include "vi_sense.h"
 

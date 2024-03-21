@@ -1,6 +1,6 @@
 #include "vi_sense.h"
 #include "hal/spi.h"
-#include "cmd_interface/cmd_spi_driver.h"
+#include "cmd_spi_driver.h"
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 

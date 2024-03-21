@@ -7,7 +7,7 @@
  */
 
 #include "common_defs.h"
-#include "cmd_interface/cmd_spi_registers.h"
+#include "cmd_spi_registers.h"
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
