@@ -121,6 +121,32 @@ void cmd_write(uint8_t address, uint16_t data) {
     cmd_register[address] = ((data & 0xffff) << 8) | checksum;
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// sets a bit in a load register
+void cmd_set_bit(uint8_t address, uint16_t mask) {
+
+    if (!cmd_address_valid(address)) return;
+
+    uint16_t data = cmd_register[address] >> 8;
+    data |= mask;
+
+    cmd_write(address, data);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// clears a bit in a load register
+void cmd_clear_bit(uint8_t address, uint16_t mask) {
+
+    if (!cmd_address_valid(address)) return;
+
+    uint16_t data = cmd_register[address] >> 8;
+    data &= ~mask;
+
+    cmd_write(address, data);
+}
+
 //---- IRQ HANDLERS ----------------------------------------------------------------------------------------------------------------------------------------------
 
 void CMD_SPI_IRQ_HANDLER(void) {

@@ -134,9 +134,17 @@ void vi_sense_task(void) {
 // sets the VSEN ADC source (either VSEN_SRC_INTERNAL or VSEN_SRC_REMOTE)
 void vi_sense_set_vsen_source(vsen_src_t source) {
 
-    if (source == VSEN_SRC_INTERNAL) gpio_write(VSEN_SRC_GPIO, LOW);
-    else if (source == VSEN_SRC_REMOTE) gpio_write(VSEN_SRC_GPIO, HIGH);
-    else return;
+    if (source == VSEN_SRC_INTERNAL) {
+        
+        gpio_write(VSEN_SRC_GPIO, LOW);
+        cmd_clear_bit(CMD_ADDRESS_CONFIG, LOAD_CONFIG_VSEN_SRC);
+    
+    } else if (source == VSEN_SRC_REMOTE) {
+        
+        gpio_write(VSEN_SRC_GPIO, HIGH);
+        cmd_set_bit(CMD_ADDRESS_CONFIG, LOAD_CONFIG_VSEN_SRC);
+
+    } else return;
 
     vsen_src = source;
 }

@@ -98,7 +98,7 @@ void load_control_task(void) {
 bool load_set_enable(bool state) {
 
     if (state == enabled) return true;                                  // load is already in the specified state
-    if (state && !(status_register & LOAD_STATUS_READY)) return false;   // load is performing a self test (not ready)
+    if (state && !(status_register & LOAD_STATUS_READY)) return false;  // load is performing a self test (not ready)
     if (state && (fault_register & fault_mask)) return false;           // load is in fault; enable not allowed until all masked faults are cleared
 
     if (state) {    // enable the load

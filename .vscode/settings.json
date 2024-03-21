@@ -4,5 +4,10 @@
         "*.dis": "arm",
         "*.h": "c",
         "*.c": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "vector": "c",
+        "__locale": "c"
     }
 }

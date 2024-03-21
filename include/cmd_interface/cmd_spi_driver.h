@@ -23,6 +23,12 @@ bool cmd_read(uint8_t *address, uint16_t *data);
 // writes data to the specified register; if the interface receives a read command on this address, this value will be transmitted to the master
 void cmd_write(uint8_t address, uint16_t data);
 
+// sets a bit in a load register
+void cmd_set_bit(uint8_t address, uint16_t mask);
+
+// clears a bit in a load register
+void cmd_clear_bit(uint8_t address, uint16_t mask);
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _CMD_SPI_DRIVER_H_ */

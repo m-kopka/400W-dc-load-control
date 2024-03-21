@@ -1,5 +1,6 @@
 #include "cmd_interface/load_cmd.h"
 #include "load_control.h"
+#include "vi_sense.h"
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -19,6 +20,12 @@ void load_cmd_task(void) {
             bool checksum_correct = cmd_read(&address, &data);
 
             if (checksum_correct) {
+
+                if (address == CMD_ADDRESS_CONFIG) {
+
+                    if (data & LOAD_CONFIG_VSEN_SRC) vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
+                    else vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
+                }
 
                 if (address == CMD_ADDRESS_ENABLE) {
 
