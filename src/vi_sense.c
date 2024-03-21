@@ -101,9 +101,13 @@ void vi_sense_task(void) {
             uint16_t vsen_sample = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 3) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 3);
             uint16_t isen_sample = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 3);
 
-            // calculate moving average
-            load_voltage_mv = (load_voltage_mv + vsen_sample) >> 1;
-            load_current_ma = (load_current_ma + isen_sample) >> 1;
+            // calculate a moving average for voltage
+            if (load_voltage_mv > 0) load_voltage_mv = (load_voltage_mv + vsen_sample) >> 1;
+            else load_voltage_mv = vsen_sample;
+
+            // calculate a moving average for current
+            if (load_current_ma > 0) load_current_ma = (load_current_ma + isen_sample) >> 1;
+            else load_current_ma = isen_sample;
 
             // round to 50mV / 50mA
             load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
