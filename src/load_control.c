@@ -69,6 +69,31 @@ void load_control_task(void) {
             // overpower protection
             if (load_power_mw > LOAD_MAX_POWER_MW) load_trigger_fault(LOAD_FAULT_OPP);
 
+            // fuse fault handling
+            if (load_current_ma > LOAD_MIN_CURRENT_MA && !iset_dac_is_in_transient()) {
+
+                static uint8_t fuse_fault_cumulative_counter[4] = {0};
+
+                // check the current of each current sink
+                for (int sink = CURRENT_L1; sink <= CURRENT_R2; sink++) {
+
+                    // trigger a fuse fault after enough cumulative faults
+                    if (vi_sense_get_sink_current(sink) == 0) {
+                        
+                        if (++fuse_fault_cumulative_counter[sink] == 16) {
+
+                            if      (sink == CURRENT_L1) load_trigger_fault(LOAD_FAULT_FUSE_L1);
+                            else if (sink == CURRENT_L2) load_trigger_fault(LOAD_FAULT_FUSE_L2);
+                            else if (sink == CURRENT_R1) load_trigger_fault(LOAD_FAULT_FUSE_R1);
+                            else if (sink == CURRENT_R2) load_trigger_fault(LOAD_FAULT_FUSE_R2);
+
+                            fuse_fault_cumulative_counter[sink] = 15;
+                        }
+
+                    } else if (fuse_fault_cumulative_counter[sink] > 0) fuse_fault_cumulative_counter[sink]--;
+                }
+            }
+
             // disable the load if voltage dropped bellow threshold
             if (load_voltage_mv < discharge_voltage_mv) load_set_enable(false);
 

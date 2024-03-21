@@ -11,6 +11,7 @@ uint16_t __isen_adc_read(void);
 
 uint32_t load_voltage_mv = 0;                   // current load voltage [mV]. Updated by the vi_sense_task
 uint32_t load_current_ma = 0;                   // current load current [mA]. Updated by the vi_sense_task
+uint32_t sink_current[4] = {0};                 // current of individual current sink [mA]
 vsen_src_t vsen_src = VSEN_SRC_INTERNAL;        // voltage sense source (internal or remote)
 bool auto_vsen_src_enabled = false;             // automatic switching of voltage sense source enabled
 
@@ -100,6 +101,8 @@ void vi_sense_task(void) {
 
         if (sample_count == 8) {
 
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
             // divide sample sum by sample count and convert to mV and mA
             uint16_t vsen_new_value = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 3) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 3);
             uint16_t isen_new_value = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 3);
@@ -126,6 +129,8 @@ void vi_sense_task(void) {
             vsen_sample_sum = 0;
             isen_sample_sum = 0;
             sample_count = 0;
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
             // handle automatic voltage sense source switching
             if (auto_vsen_src_enabled) {
@@ -155,6 +160,21 @@ void vi_sense_task(void) {
                 // if the current VSEN source is remote and voltage is 0, switch to internal
                 } else if (vsen_latest_sample < VI_SENSE_AUTO_VSENSRC_THRESHOLD_CODE) vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
             }
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+            // sample individual current sink voltage using the internal ADC
+            for (int sink = CURRENT_L1; sink <= CURRENT_R2; sink++) {
+
+                sink_current[sink] = internal_isen_read(sink);
+            }
+
+            cmd_write(CMD_ADDRESS_CURRENT_L1, sink_current[CURRENT_L1]);
+            cmd_write(CMD_ADDRESS_CURRENT_L2, sink_current[CURRENT_L2]);
+            cmd_write(CMD_ADDRESS_CURRENT_R1, sink_current[CURRENT_R1]);
+            cmd_write(CMD_ADDRESS_CURRENT_R2, sink_current[CURRENT_R2]);
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         }
 
         kernel_sleep_ms(5);

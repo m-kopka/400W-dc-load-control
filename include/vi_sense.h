@@ -60,6 +60,17 @@ static inline uint32_t vi_sense_get_current(void) {
     return (load_current_ma);
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// returns the current of a individual current sink [mA]
+static inline uint32_t vi_sense_get_sink_current(internal_isen_t sink) {
+
+    if (sink > CURRENT_R2) return 0;
+
+    extern uint32_t sink_current[4];
+    return sink_current[sink];
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #endif /* _VI_SENSE_H_ */

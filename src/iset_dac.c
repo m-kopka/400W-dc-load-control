@@ -75,9 +75,14 @@ void iset_dac_write_code(uint16_t code) {
     current_code = code;
 }
 
+bool iset_dac_is_in_transient(void) {
+
+    return (current_code != target_code);
+}
+
 //---- IRQ HANDLERS ----------------------------------------------------------------------------------------------------------------------------------------------
 
-// triggered in regular intervals while the load current is in transition to slowly ramp the dac
+// triggered in regular intervals while the load current is in transient to slowly ramp the dac
 void ISET_DAC_TIMER_IRQ_HANDLER(void) {
 
     if (bit_is_set(ISET_DAC_TIMER->SR, TIM_SR_UIF)) {

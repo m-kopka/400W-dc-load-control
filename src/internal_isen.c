@@ -33,7 +33,9 @@ uint16_t internal_isen_read(internal_isen_t current_sink) {
 
     if (current_sink != CURRENT_L1 && current_sink != CURRENT_L2 && current_sink != CURRENT_R1 && current_sink != CURRENT_R2) return 0;
 
-    uint16_t current_ma = ISEN_INT_ADC_CODE_TO_MA(adc_read(get_adc_chan(current_sink)));
+    int32_t current_ma = ISEN_INT_ADC_CODE_TO_MA(adc_read(get_adc_chan(current_sink)));
+
+    if (current_ma < INTERNAL_ISEN_MIN_CURRENT) return 0;
     return current_ma;
 }
 
