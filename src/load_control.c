@@ -77,13 +77,13 @@ void load_control_task(void) {
             total_mas += load_current_ma / (1000 / LOAD_CONTROL_UPDATE_PERIOD_MS);
             total_mws += load_power_mw / (1000 / LOAD_CONTROL_UPDATE_PERIOD_MS);
 
-            cmd_write(CMD_ADDRESS_ENA_TIME, enable_time_s);
+            cmd_write(CMD_ADDRESS_TOTAL_TIME_L, enable_time_s);
 
             uint16_t total_mah = total_mas / (60 * 60);
             cmd_write(CMD_ADDRESS_TOTAL_MAH, total_mah);
 
             uint16_t total_mwh = total_mws / (60 * 60);
-            cmd_write(CMD_ADDRESS_TOTAL_MWH, total_mwh);
+            cmd_write(CMD_ADDRESS_TOTAL_MWH_L, total_mwh);
         }
 
         kernel_sleep_ms(LOAD_CONTROL_UPDATE_PERIOD_MS);

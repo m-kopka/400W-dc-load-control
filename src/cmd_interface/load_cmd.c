@@ -8,7 +8,7 @@ void load_cmd_task(void) {
     kernel_time_t last_watchdog_reload = 0;
 
     cmd_driver_init();
-    cmd_write(CMD_ADDRESS_ID, 0x10AD);
+    cmd_write(CMD_ADDRESS_ID, LOAD_ID_CODE);
 
     while (1) {
 
@@ -39,9 +39,9 @@ void load_cmd_task(void) {
             }
         }
 
-        if (load_get_status() & LOAD_STATUS_ENABLED && kernel_get_time_since(last_watchdog_reload) >= 1000) {
+        if (load_get_status() & LOAD_STATUS_ENABLED && kernel_get_time_since(last_watchdog_reload) >= LOAD_WD_TIMEOUT_MS) {
 
-            load_trigger_fault(LOAD_FAULT_COMMUNICATION);
+            load_trigger_fault(LOAD_FAULT_COM);
         }
 
         kernel_yield();

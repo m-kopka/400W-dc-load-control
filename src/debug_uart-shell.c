@@ -101,8 +101,8 @@ void shell_update(char *buffer) {
         debug_print((status & LOAD_STATUS_FAULT) ? "ACTIVE\n" : "not active\n");
 
         debug_print("\nCOM fault\t");
-        debug_print((faults & LOAD_FAULT_COMMUNICATION) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_COMMUNICATION) ? "(masked)\n" : "(not masked)\n");
+        debug_print((faults & LOAD_FAULT_COM) ? "ACTIVE\t\t" : "not active\t");
+        debug_print((fault_mask & LOAD_FAULT_COM) ? "(masked)\n" : "(not masked)\n");
         debug_print("OTP fault\t");
         debug_print((faults & LOAD_FAULT_OTP) ? "ACTIVE\t\t" : "not active\t");
         debug_print((fault_mask & LOAD_FAULT_OTP) ? "(masked)\n" : "(not masked)\n");
@@ -113,11 +113,11 @@ void shell_update(char *buffer) {
         debug_print((faults & LOAD_FAULT_OPP) ? "ACTIVE\t\t" : "not active\t");
         debug_print((fault_mask & LOAD_FAULT_OPP) ? "(masked)\n" : "(not masked)\n");
         debug_print("TEMP_L fault\t");
-        debug_print((faults & LOAD_FAULT_TEMP_SENSOR_L) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_TEMP_SENSOR_L) ? "(masked)\n" : "(not masked)\n");
+        debug_print((faults & LOAD_FAULT_TEMP_L) ? "ACTIVE\t\t" : "not active\t");
+        debug_print((fault_mask & LOAD_FAULT_TEMP_L) ? "(masked)\n" : "(not masked)\n");
         debug_print("TEMP_R fault\t");
-        debug_print((faults & LOAD_FAULT_TEMP_SENSOR_R) ? "ACTIVE\t\t" : "not active\t");
-        debug_print((fault_mask & LOAD_FAULT_TEMP_SENSOR_R) ? "(masked)\n" : "(not masked)\n");
+        debug_print((faults & LOAD_FAULT_TEMP_R) ? "ACTIVE\t\t" : "not active\t");
+        debug_print((fault_mask & LOAD_FAULT_TEMP_R) ? "(masked)\n" : "(not masked)\n");
         debug_print("FAN1 fault\t");
         debug_print((faults & LOAD_FAULT_FAN1) ? "ACTIVE\t\t" : "not active\t");
         debug_print((fault_mask & LOAD_FAULT_FAN1) ? "(masked)\n" : "(not masked)\n");

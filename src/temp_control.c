@@ -52,7 +52,7 @@ void temp_control_task(void) {
             if (temp_sensor_read_faults(sensor) == TEMP_SEN_FAULT_NONE) success_count++;
         }
 
-        if (success_count == 0) load_trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_SENSOR_L : LOAD_FAULT_TEMP_SENSOR_R);
+        if (success_count == 0) load_trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_L : LOAD_FAULT_TEMP_R);
     }
 
     //------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ void temp_control_task(void) {
                 // trigger a sensor fault after after enough cumulative faults
                 if (++sensor_fault_cumulative_counter[sensor] == TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD) {
 
-                    load_trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_SENSOR_L : LOAD_FAULT_TEMP_SENSOR_R);
+                    load_trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_L : LOAD_FAULT_TEMP_R);
                     sensor_fault_cumulative_counter[sensor] = TEMP_SENSOR_FAULT_CUMULATIVE_THRESHOLD - 1;
                 }
 
@@ -113,7 +113,7 @@ void temp_control_task(void) {
 
             } else if (fan_fault_cumulative_counter[fan] > 0) fan_fault_cumulative_counter[fan]--;
 
-            cmd_write((fan == FAN1) ? CMD_ADDRESS_RPM1 : CMD_ADDRESS_RPM2, fan_rpm);
+            cmd_write((fan == FAN1) ? CMD_ADDRESS_FAN_RPM1 : CMD_ADDRESS_FAN_RPM2, fan_rpm);
         }
 
         //---- FAN CONTROL ---------------------------------------------------------------------------------------------------------------------------------------
