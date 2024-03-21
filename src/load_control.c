@@ -55,9 +55,6 @@ void load_control_task(void) {
     load_set_fault_mask(LOAD_DEFAULT_FAULT_MASK);
     load_set_cc_level(LOAD_START_CC_LEVEL_MA);
 
-    status_register |= LOAD_STATUS_READY;
-    cmd_write(CMD_ADDRESS_STATUS, status_register);
-
     while (1) {
 
         if (enabled) {
@@ -185,6 +182,17 @@ void load_set_fault_mask(load_fault_t mask) {
 
     fault_mask = mask | LOAD_ALWAYS_MASKED_FAULTS;      // don't allow the always masked faults to be cleared
     __check_fault_conditions();                         // test fault status with fault mask and disable the load if the fault conditions are met
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// sets the ready flag in the status register
+void load_set_ready(bool ready) {
+
+    if (ready) status_register |= LOAD_STATUS_READY;
+    else status_register &= ~LOAD_STATUS_READY;
+
+    cmd_write(CMD_ADDRESS_STATUS, status_register);
 }
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------

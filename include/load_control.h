@@ -27,6 +27,9 @@ void load_clear_fault(load_fault_t fault);
 // sets the load fault mask
 void load_set_fault_mask(load_fault_t mask);
 
+// sets the ready flag in the status register
+void load_set_ready(bool ready);
+
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 // returns the load status register

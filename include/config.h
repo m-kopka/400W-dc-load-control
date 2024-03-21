@@ -8,6 +8,7 @@
 #define FAN_MIN_PWM         30      // minimum fan pwm to start the fan
 #define FAN_MAX_PWM         217     // maximum fan pwm
 
+#define FAN_TEST_ENABLED    1       // on startup, the temp_control_task ramps up the fans and checks if rotation is detected
 #define FAN_TEST_SPEED      128     // fan speed during the power-up test
 #define FAN_TEST_DURATION   3000    // time duration for letting the fans spin-up during the power-up test [ms]
 #define FAN_TEST_FAIL_RPM   10000   // if the measured fan rpm during the power-up test is lower than this, the test will fail [rpm]

@@ -24,7 +24,40 @@ void temp_control_task(void) {
 
     temp_sensor_init();
 
+    //---- FAN TEST ----------------------------------------------------------------------------------------------------------------------------------------------
+
+#if FAN_TEST_ENABLED
+
+    fan_set_pwm(FAN_TEST_SPEED);
+    kernel_sleep_ms(FAN_TEST_DURATION);
+
+    for (int fan = FAN1; fan <= FAN2; fan++) {
+
+        if (fan_get_rpm(fan) < FAN_TEST_FAIL_RPM) load_trigger_fault((fan == FAN1) ? LOAD_FAULT_FAN1 : LOAD_FAULT_FAN2);
+    }
+
+#endif
+
     fan_set_pwm(FAN_IDLE_PWM);
+
+    //---- TEMPERATURE SENSOR TEST -------------------------------------------------------------------------------------------------------------------------------
+
+    for (int sensor = TEMP_L; sensor <= TEMP_R; sensor++) {
+
+        int success_count = 0;
+
+        for (int i = 0; i < 4; i++) {
+
+            temp_sensor_read(sensor);
+            if (temp_sensor_read_faults(sensor) == TEMP_SEN_FAULT_NONE) success_count++;
+        }
+
+        if (success_count == 0) load_trigger_fault((sensor == TEMP_L) ? LOAD_FAULT_TEMP_SENSOR_L : LOAD_FAULT_TEMP_SENSOR_R);
+    }
+
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    load_set_ready(true);       // inform the control logic that the load is ready
 
     while (1) {
 
