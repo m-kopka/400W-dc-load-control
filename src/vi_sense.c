@@ -95,11 +95,11 @@ void vi_sense_task(void) {
         isen_sample_sum += __isen_adc_read();
         sample_count++;
 
-        if (sample_count == 16) {
+        if (sample_count == 8) {
 
             // divide sample sum by sample count and convert to mV and mA
-            uint16_t vsen_sample = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 4) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 4);
-            uint16_t isen_sample = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 4);
+            uint16_t vsen_sample = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 3) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 3);
+            uint16_t isen_sample = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 3);
 
             // calculate moving average
             load_voltage_mv = (load_voltage_mv + vsen_sample) >> 1;
@@ -121,7 +121,7 @@ void vi_sense_task(void) {
             sample_count = 0;
         }
 
-        kernel_sleep_ms(10);
+        kernel_sleep_ms(5);
     }
 }
 
