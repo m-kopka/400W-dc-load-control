@@ -28,12 +28,9 @@ static inline TIM_TypeDef* get_fan_tach_timer(uint8_t fan_num) {
 // initializes hardware for fan PWM control and speed measurement. Then continuously controls the fan speed based on the set point
 void fan_regulator_task(void) {
 
-    // initialize the fan tach structure for each fan
-    for (int i = 0; i < 2; i++) {
-
-        tach_pulse_count[i] = 60 * FAN_TACH_REF_CLOCK_HZ / FAN_TACH_PULSES_PER_ROTATION;
-        last_tach_pulse_time[i] = 0;
-    }
+    // initialize the fan tach data for each fan
+    tach_pulse_count[FAN1] = tach_pulse_count[FAN2] = 60 * FAN_TACH_REF_CLOCK_HZ / FAN_TACH_PULSES_PER_ROTATION;
+    last_tach_pulse_time[FAN1] = last_tach_pulse_time[FAN2] = 0;
 
     // initialize fan control PWM
     timer_init_pwm(FAN1_PWM_TIMER_CH, FAN1_PWM_GPIO, FAN_PWM_FREQUENCY_HZ, FAN_PWM_RELOAD_VAL);

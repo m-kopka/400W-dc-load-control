@@ -31,7 +31,7 @@
 #define LOAD_MAX_CURRENT_MA     42000   // maximum CC level allowed [mA]
 #define LOAD_MAX_POWER_MW       420000  // maximum load power allowed [mW]
 
-#define LOAD_OPP_RELATIVE_THRESHOLD_MA  500     // if the load current is higher than the CC level by this ammount OCP fault is triggered
+#define LOAD_OPP_THRESHOLD_MA   45000   // if the load current is higher than this value, OCP fault is triggered
 
 #define LOAD_CONTROL_UPDATE_PERIOD_MS   100     // time period for checking the OPP and OCP state and updating load statistics [ms]
 #define LOAD_START_CC_LEVEL_MA          1000    // CC level on startup [mA]

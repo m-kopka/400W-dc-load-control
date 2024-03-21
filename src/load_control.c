@@ -64,7 +64,7 @@ void load_control_task(void) {
             uint32_t load_power_mw = load_voltage_mv * load_current_ma / 1000;
 
             // overcurrent protection
-            if (load_current_ma > cc_level_ma + LOAD_OPP_RELATIVE_THRESHOLD_MA) load_trigger_fault(LOAD_FAULT_OCP);
+            if (load_current_ma > LOAD_OPP_THRESHOLD_MA) load_trigger_fault(LOAD_FAULT_OCP);
 
             // overpower protection
             if (load_power_mw > LOAD_MAX_POWER_MW) load_trigger_fault(LOAD_FAULT_OPP);
