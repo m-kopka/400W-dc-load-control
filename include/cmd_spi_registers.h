@@ -62,9 +62,10 @@ typedef enum {
 // status register bits
 typedef enum {
 
-    LOAD_STATUS_ENABLED  = (1 << 0),
-    LOAD_STATUS_FAULT    = (1 << 1),
-    LOAD_STATUS_READY    = (1 << 2)
+    LOAD_STATUS_ENABLED = (1 << 0),     // load is enabled
+    LOAD_STATUS_FAULT   = (1 << 1),     // load is in a fault state and cannot be enabled
+    LOAD_STATUS_READY   = (1 << 2),     // selftest is done and the load is ready
+    LOAD_STATUS_NO_REG  = (1 << 3)      // load is not in regulation
 
 } load_status_t;
 
@@ -83,21 +84,22 @@ typedef enum {
 // fault flags
 typedef enum {
 
-    LOAD_FAULT_COM      = (1 <<  0),
-    LOAD_FAULT_OTP      = (1 <<  1),
-    LOAD_FAULT_OCP      = (1 <<  2),
-    LOAD_FAULT_OPP      = (1 <<  3),
-    LOAD_FAULT_TEMP_L   = (1 <<  4),
-    LOAD_FAULT_TEMP_R   = (1 <<  5),
-    LOAD_FAULT_FAN1     = (1 <<  6),
-    LOAD_FAULT_FAN2     = (1 <<  7),
-    LOAD_FAULT_FUSE_L1  = (1 <<  8),
-    LOAD_FAULT_FUSE_L2  = (1 <<  9),
-    LOAD_FAULT_FUSE_R1  = (1 << 10),
-    LOAD_FAULT_FUSE_R2  = (1 << 11),
-    LOAD_FAULT_EXTERNAL = (1 << 12),
+    LOAD_FAULT_COM      = (1 <<  0),        // Watchdog Timeout fault
+    LOAD_FAULT_REG      = (1 <<  1),        // Regulation fault
+    LOAD_FAULT_OTP      = (1 <<  2),        // Overtemperature fault
+    LOAD_FAULT_OCP      = (1 <<  3),        // Overcurrent fault
+    LOAD_FAULT_OPP      = (1 <<  4),        // Overpower fault
+    LOAD_FAULT_TEMP_L   = (1 <<  5),        // Temperature Sensor Left fault
+    LOAD_FAULT_TEMP_R   = (1 <<  6),        // Temperature Sensor Right fault
+    LOAD_FAULT_FAN1     = (1 <<  7),        // FAN1 fault
+    LOAD_FAULT_FAN2     = (1 <<  8),        // FAN2 fault
+    LOAD_FAULT_FUSE_L1  = (1 <<  9),        // L1 Sink No Current fault
+    LOAD_FAULT_FUSE_L2  = (1 << 10),        // L2 Sink No Current fault
+    LOAD_FAULT_FUSE_R1  = (1 << 11),        // R1 Sink No Current fault
+    LOAD_FAULT_FUSE_R2  = (1 << 12),        // R2 Sink No Current fault
+    LOAD_FAULT_EXTERNAL = (1 << 13),        // External fault
     
-    LOAD_FAULT_ALL      = 0x1FFF
+    LOAD_FAULT_ALL      = 0x3FFF
 
 } load_fault_t;
 
@@ -105,7 +107,7 @@ typedef enum {
 #define LOAD_NON_MASKABLE_FAULTS (LOAD_FAULT_OTP | LOAD_FAULT_OPP | LOAD_FAULT_TEMP_L | LOAD_FAULT_TEMP_R)
 
 // fault mask on startup
-#define LOAD_DEFAULT_FAULT_MASK   (LOAD_FAULT_ALL & ~(LOAD_FAULT_COM | LOAD_FAULT_EXTERNAL))
+#define LOAD_DEFAULT_FAULT_MASK   (LOAD_FAULT_ALL & ~(LOAD_FAULT_COM | LOAD_FAULT_REG | LOAD_FAULT_EXTERNAL))
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

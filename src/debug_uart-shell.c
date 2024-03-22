@@ -155,15 +155,25 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("faultmask")) {
 
         shell_assert_argc(1);
-        int mask = __parse_hex_string(args[1]);
 
-        if (mask >= 0 && mask <= 0xffff) {
+        if (COMPARE_ARG(1, "default")) {
 
-            load_set_fault_mask((uint16_t)mask);
-
+            load_set_fault_mask(LOAD_DEFAULT_FAULT_MASK);
             debug_print("fault mask changed to ");
             debug_print_int_hex(load_get_fault_mask(), 4);
             debug_print(".\n");
+
+        } else {
+
+            int mask = __parse_hex_string(args[1]);
+
+            if (mask >= 0 && mask <= 0xffff) {
+
+                load_set_fault_mask((uint16_t)mask);
+                debug_print("fault mask changed to ");
+                debug_print_int_hex(load_get_fault_mask(), 4);
+                debug_print(".\n");
+            }
         }
     }
 
