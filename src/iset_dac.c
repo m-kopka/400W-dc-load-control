@@ -7,10 +7,6 @@
 static volatile int32_t current_code = 0;       // most recent code sent to the DAC (used in slew limit logic)
 static uint16_t target_code = 0;                // target DAC code in slew limited ramp
 
-//---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
-
-void iset_dac_set_raw(uint16_t code);
-
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
 // initializes the SPI communication with the I_SET DAC and sets it to the 0A current level
@@ -34,7 +30,7 @@ void iset_dac_init(void) {
     ISET_DAC_SPI->CR2  = 0;
     ISET_DAC_SPI->CR1 |= SPI_CR1_SPE;       // spi enable
 
-    iset_dac_set_current(0, false);
+    iset_dac_write_code(0xffff);
 
     // setup the timer to trigger an interrupt in regular interval while the load current is in transition
     // set the timer frequency at 10x the required interrupt frequency and reload at 9 (interrupt every 10 counts)
@@ -45,6 +41,7 @@ void iset_dac_init(void) {
     ISET_DAC_TIMER->DIER |= TIM_DIER_UIE;
     ISET_DAC_TIMER->SR &= ~TIM_SR_UIF;
 
+    NVIC_SetPriority(ISET_DAC_TIMER_IRQ, 1);
     NVIC_EnableIRQ(ISET_DAC_TIMER_IRQ);
 }
 
@@ -74,6 +71,8 @@ void iset_dac_write_code(uint16_t code) {
 
     current_code = code;
 }
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 bool iset_dac_is_in_transient(void) {
 

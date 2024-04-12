@@ -80,6 +80,7 @@ void cmd_driver_init(void) {
     // reset the registers
     for (int i = 0; i < CMD_REGISTER_COUNT; i++) cmd_register[i] = 0;
 
+    NVIC_SetPriority(CMD_SPI_IRQ, 1);
     NVIC_EnableIRQ(CMD_SPI_IRQ);
 }
 

@@ -13,6 +13,7 @@
  */
 
 #include "common_defs.h"
+#include "hal/spi.h"
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -25,6 +26,18 @@ void iset_dac_set_current(uint32_t current_ma, bool slew_limit);
 // writes the specified 16bit code to the ISET_DAC
 void iset_dac_write_code(uint16_t code);
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// writes the specified 16bit code to the ISET_DAC (doesn't wait for the end of transmission and leaves the SS pin HIGH)
+static inline void iset_dac_write_code_non_blocking(uint16_t code) {
+
+    gpio_write(ISET_DAC_SPI_SS_GPIO, LOW);
+    spi_write(ISET_DAC_SPI, code);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// returns true if the ISET_DAC is in a slew limited transient
 bool iset_dac_is_in_transient(void);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
