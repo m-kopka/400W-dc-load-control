@@ -186,7 +186,11 @@ void vi_sense_task(void) {
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
             // get new samples
-            if (!continuous_conversion_mode_enabled) __read_latest_conversion();
+            if (!continuous_conversion_mode_enabled) {
+                
+                while (!conversion_read_done);
+                __read_latest_conversion();
+            }
 
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -249,6 +253,8 @@ void vi_sense_set_continuous_conversion_mode(bool enabled) {
     if (enabled) {
         
         vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);        // Remote Sense is not allowed in Continuous Conversion Mode because the MUX switching would cause glitches in the digital feedback loop
+        
+        while(!conversion_read_done) kernel_yield();
         __read_latest_conversion();                         // read last conversion (triggers the next one in Continuous Conversion Mode)
     }
 }
