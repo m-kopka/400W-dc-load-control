@@ -31,6 +31,8 @@ void load_cmd_task(void) {
                     // Load Configuration Register
                     case CMD_ADDRESS_CONFIG: {
 
+                        load_set_mode(data & 0x3);      // lower 2 bits are Load Mode
+
                         // if the auto vsen src is not selected, disable it and select a source according to the CONFIG_VSEN_SRC bit
                         if (data & LOAD_CONFIG_AUTO_VSEN_SRC) vi_sense_set_automatic_vsen_source(true);
                         else if (data & LOAD_CONFIG_VSEN_SRC) {
@@ -80,6 +82,33 @@ void load_cmd_task(void) {
                     case CMD_ADDRESS_CC_LEVEL: {
 
                         load_set_cc_level(data);
+
+                    } break;
+
+                    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+                    // Load CV Level register
+                    case CMD_ADDRESS_CV_LEVEL: {
+
+                        load_set_cv_level(data * 10);
+
+                    } break;
+
+                    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+                    // Load CR Level register
+                    case CMD_ADDRESS_CR_LEVEL: {
+
+                        load_set_cr_level(data);
+
+                    } break;
+
+                    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+                    // Load CP Level register
+                    case CMD_ADDRESS_CP_LEVEL: {
+
+                        load_set_cp_level(data * 100);
 
                     } break;
 

@@ -4,6 +4,7 @@
 
 //---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
 
+static volatile bool is_in_transient = false;   // ISET_DAC is in a slew limited transient
 static volatile int32_t current_code = 0;       // most recent code sent to the DAC (used in slew limit logic)
 static uint16_t target_code = 0;                // target DAC code in slew limited ramp
 
@@ -53,6 +54,7 @@ void iset_dac_set_current(uint32_t current_ma, bool slew_limit) {
     if (slew_limit) {       // change the DAC value in regular intervals until the target current is reached
 
         target_code = ISET_DAC_MA_TO_CODE(current_ma);
+        is_in_transient = true;
         timer_start_count(ISET_DAC_TIMER);
 
     } else iset_dac_write_code(ISET_DAC_MA_TO_CODE(current_ma));
@@ -74,9 +76,10 @@ void iset_dac_write_code(uint16_t code) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// returns true if the ISET_DAC is in a slew limited transient
 bool iset_dac_is_in_transient(void) {
 
-    return (current_code != target_code);
+    return (is_in_transient);
 }
 
 //---- IRQ HANDLERS ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -92,6 +95,7 @@ void ISET_DAC_TIMER_IRQ_HANDLER(void) {
             if (current_code >= target_code) {      // target value reached, stop count
                 
                 current_code = target_code;
+                is_in_transient = false;
                 timer_stop_count(ISET_DAC_TIMER);
             }
 
@@ -101,6 +105,7 @@ void ISET_DAC_TIMER_IRQ_HANDLER(void) {
             if (current_code <= target_code) {      // target value reached, stop count    
                 
                 current_code = target_code;
+                is_in_transient = false;
                 timer_stop_count(ISET_DAC_TIMER);
             }
         }

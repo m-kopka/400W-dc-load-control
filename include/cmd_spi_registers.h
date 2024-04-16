@@ -25,11 +25,15 @@ typedef enum {
     CMD_ADDRESS_WD_RELOAD       = 0x0C,     // Load Watchdog Reload register (w), write 0xBABA to reload the watchdog
     CMD_ADDRESS_ENABLE          = 0x0D,     // Load Enable register (w), write 0xABCD to enable the load, write 0 to disable
     CMD_ADDRESS_CC_LEVEL        = 0x10,     // Load CC Level register (r/w)
+    CMD_ADDRESS_CV_LEVEL        = 0x11,     // Load CV Level register (r/w)
+    CMD_ADDRESS_CR_LEVEL        = 0x12,     // Load CR Level register (r/w)
+    CMD_ADDRESS_CP_LEVEL        = 0x13,     // Load CP Level register (r/w)
     CMD_ADDRESS_DISCH_LEVEL     = 0x14,     // Load Discharge Voltage register (r/w)
     CMD_ADDRESS_AVLBL_CURRENT   = 0x1E,     // Load Available Current register (r)
     CMD_ADDRESS_AVLBL_POWER     = 0x1F,     // Load Available Power register (r)
     CMD_ADDRESS_VOLTAGE         = 0x20,     // Load Input Voltage register (r)
     CMD_ADDRESS_CURRENT         = 0x22,     // Load Total Current register (r)
+    CMD_ADDRESS_POWER           = 0x23,     // Load Total Power register (r)
     CMD_ADDRESS_CURRENT_L1      = 0x28,     // Load L1 Sink Current register (r)
     CMD_ADDRESS_CURRENT_L2      = 0x29,     // Load L2 Sink Current register (r)
     CMD_ADDRESS_CURRENT_R1      = 0x2A,     // Load R1 Sink Current register (r)
@@ -71,11 +75,24 @@ typedef enum {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// load mode options
+typedef enum {
+
+    LOAD_MODE_CC = 0x0,
+    LOAD_MODE_CV = 0x1,
+    LOAD_MODE_CR = 0x2,
+    LOAD_MODE_CP = 0x3
+
+} load_mode_t;
+
 // config register bits
 typedef enum {
 
+    LOAD_CONFIG_MODE0           = (1 <<  0),
+    LOAD_CONFIG_MODE1           = (1 <<  1),
+    LOAD_CONFIG_MODE            = (3 <<  0),    // load mode; 0 -> CC, 1 -> CV, 2 -> CR, 3 -> CP
     LOAD_CONFIG_VSEN_SRC        = (1 <<  4),    // 0 -> internal, 1 -> remote (this bit is ignored in write commands if the AUTO_VSEN_SRC bit is set)
-    LOAD_CONFIG_AUTO_VSEN_SRC   = (1 <<  5),    // enable automatic switching of VSEN source
+    LOAD_CONFIG_AUTO_VSEN_SRC   = (1 <<  5)     // enable automatic switching of VSEN source
     
 } load_config_t;
 

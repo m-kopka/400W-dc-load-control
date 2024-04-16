@@ -61,6 +61,7 @@
 
 #define ISET_DAC_LSB_PER_MA(i_ma)       (-14919 * (int32_t)(i_ma) / 10000)
 #define ISET_DAC_MA_TO_CODE(i_ma)       (ISET_DAC_LSB_PER_MA(i_ma) + 62647)
+#define ISET_DAC_ZERO_LEVEL_CODE        62430
 
 //---- VSEN ADC --------------------------------------------------------------------------------------------------------------------------------------------------
 

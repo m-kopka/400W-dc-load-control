@@ -53,7 +53,7 @@ void shell_update(char *buffer) {
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    if (SHELL_CMD("ahoj")) debug_print("zdar jak sviňa\n");
+    if (SHELL_CMD("ahoj")) debug_print("zdar jak sviňa, su z Brna.\n");
 
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -103,6 +103,9 @@ void shell_update(char *buffer) {
         debug_print("\nCOM fault\t");
         debug_print((faults & LOAD_FAULT_COM) ? "ACTIVE\t\t" : "not active\t");
         debug_print((fault_mask & LOAD_FAULT_COM) ? "(ENABLED)\n" : "(masked)\n");
+        debug_print("REG fault\t");
+        debug_print((faults & LOAD_FAULT_REG) ? "ACTIVE\t\t" : "not active\t");
+        debug_print((fault_mask & LOAD_FAULT_REG) ? "(ENABLED)\n" : "(masked)\n");
         debug_print("OTP fault\t");
         debug_print((faults & LOAD_FAULT_OTP) ? "ACTIVE\t\t" : "not active\t");
         debug_print((fault_mask & LOAD_FAULT_OTP) ? "(ENABLED)\n" : "(masked)\n");
@@ -118,6 +121,7 @@ void shell_update(char *buffer) {
         debug_print("TEMP_R fault\t");
         debug_print((faults & LOAD_FAULT_TEMP_R) ? "ACTIVE\t\t" : "not active\t");
         debug_print((fault_mask & LOAD_FAULT_TEMP_R) ? "(ENABLED)\n" : "(masked)\n");
+        kernel_sleep_ms(50);
         debug_print("FAN1 fault\t");
         debug_print((faults & LOAD_FAULT_FAN1) ? "ACTIVE\t\t" : "not active\t");
         debug_print((fault_mask & LOAD_FAULT_FAN1) ? "(ENABLED)\n" : "(masked)\n");
@@ -221,6 +225,47 @@ void shell_update(char *buffer) {
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     // sets the load CC level
+    else if (SHELL_CMD("mode")) {
+
+        if (argc == 1) {
+
+            debug_print("load mode is ");
+            if      (load_get_mode() == LOAD_MODE_CC) debug_print("CC.\n");
+            else if (load_get_mode() == LOAD_MODE_CV) debug_print("CV.\n");
+            else if (load_get_mode() == LOAD_MODE_CR) debug_print("CR.\n");
+            else if (load_get_mode() == LOAD_MODE_CP) debug_print("CP.\n");
+
+        } else {
+
+            load_mode_t mode = LOAD_MODE_CC;
+
+            if (COMPARE_ARG(1, "cc")) {
+
+                load_set_mode(LOAD_MODE_CC);
+                debug_print("load mode set to CC.\n");
+
+            } else if (COMPARE_ARG(1, "cv")) {
+
+                load_set_mode(LOAD_MODE_CV);
+                debug_print("load mode set to CV.\n");
+
+            } else if (COMPARE_ARG(1, "cr")) {
+                
+                load_set_mode(LOAD_MODE_CR);
+                debug_print("load mode set to CR.\n");
+
+            } else if (COMPARE_ARG(1, "cp"))  {
+
+                load_set_mode(LOAD_MODE_CP);
+                debug_print("load mode set to CP.\n");
+
+            } else debug_print("(!) invalid argument. Use \"cc\", \"cv\", \"cr\" or \"cp\".\n");
+        }
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // sets the load CC level
     else if (SHELL_CMD("iset")) {
 
         shell_assert_argc(1);
@@ -240,6 +285,84 @@ void shell_update(char *buffer) {
             debug_print_int(LOAD_MIN_CURRENT_MA);
             debug_print(" - ");
             debug_print_int(LOAD_MAX_CURRENT_MA);
+            debug_print(">.\n");
+        }
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // sets the load CV level
+    else if (SHELL_CMD("vset")) {
+
+        shell_assert_argc(1);
+        int voltage = atoi(args[1]);
+
+        if (voltage >= 1000 && voltage <= 800000) {
+
+            load_set_cv_level((uint32_t)voltage);
+
+            debug_print("CV level set to ");
+            debug_print_int(voltage);
+            debug_print(" mV.\n");
+
+        } else {
+
+            debug_print("(!) vset range is <");
+            debug_print_int(1000);
+            debug_print(" - ");
+            debug_print_int(800000);
+            debug_print(">.\n");
+        }
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // sets the load CR level
+    else if (SHELL_CMD("rset")) {
+
+        shell_assert_argc(1);
+        int resistance = atoi(args[1]);
+
+        if (resistance >= 1 && resistance <= 1000000) {
+
+            load_set_cr_level((uint32_t)resistance);
+
+            debug_print("CR level set to ");
+            debug_print_int(resistance);
+            debug_print(" mohm.\n");
+
+        } else {
+
+            debug_print("(!) rset range is <");
+            debug_print_int(1);
+            debug_print(" - ");
+            debug_print_int(1000);
+            debug_print(">.\n");
+        }
+    }
+
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    // sets the load CP level
+    else if (SHELL_CMD("pset")) {
+
+        shell_assert_argc(1);
+        int power = atoi(args[1]);
+
+        if (power >= 1000 && power <= 400000) {
+
+            load_set_cp_level((uint32_t)power);
+
+            debug_print("CP level set to ");
+            debug_print_int(power);
+            debug_print(" mW.\n");
+
+        } else {
+
+            debug_print("(!) pset range is <");
+            debug_print_int(1000);
+            debug_print(" - ");
+            debug_print_int(400000);
             debug_print(">.\n");
         }
     }
@@ -286,7 +409,7 @@ void shell_update(char *buffer) {
     else if (SHELL_CMD("psen")) {
 
         debug_print("load power: ");
-        debug_print_int_dec(vi_sense_get_voltage() * vi_sense_get_current() / 1000, 2);
+        debug_print_int_dec(vi_sense_get_power(), 1);
         debug_print(" W\n");
     }
 
