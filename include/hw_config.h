@@ -68,6 +68,7 @@
 #define VSEN_ADC_SPI_CLOCK      RCC_PERIPH_APB2_SPI5
 #define VSEN_ADC_SPI_DIV        SPI_DIV_4                                   // PCLK2 = 96MHz, 96MHz / 4 = 24MHz
 #define VSEN_ADC_GPIO_AF        GPIO_ALTERNATE_FUNCTION_SPI2_SPI3_SPI4_SPI5
+#define VSEN_ADC_SPI_HANDLER    SPI5_Handler
 
 #define VSEN_ADC_SPI_SS_GPIO_CLOCK      RCC_PERIPH_AHB1_GPIOB
 #define VSEN_ADC_SPI_SS_GPIO            GPIOB, 1

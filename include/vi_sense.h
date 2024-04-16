@@ -31,7 +31,11 @@ void vi_sense_task(void);
 // sets the VSEN ADC source (either VSEN_SRC_INTERNAL or VSEN_SRC_REMOTE)
 void vi_sense_set_vsen_source(vsen_src_t source);
 
+// enables or disables the automatic VSEN source switching feature
 void vi_sense_set_automatic_vsen_source(bool enable);
+
+// enables or disables the Continuous Conversion Mode (new conversion trigger and read is triggered immediately after reading the last one)
+void vi_sense_set_continuous_conversion_mode(bool enabled);
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

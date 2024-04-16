@@ -4,16 +4,22 @@
 
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
-uint16_t __vsen_adc_read(void);
-uint16_t __isen_adc_read(void);
+void __read_latest_conversion(void);
+void __read_latest_conversion_blocking(void);
+
+void load_update_pid(uint32_t voltage, uint32_t current);
 
 //---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
 
-uint32_t load_voltage_mv = 0;                   // current load voltage [mV]. Updated by the vi_sense_task
-uint32_t load_current_ma = 0;                   // current load current [mA]. Updated by the vi_sense_task
-uint32_t sink_current[4] = {0};                 // current of individual current sink [mA]
-vsen_src_t vsen_src = VSEN_SRC_INTERNAL;        // voltage sense source (internal or remote)
-bool auto_vsen_src_enabled = false;             // automatic switching of voltage sense source enabled
+volatile bool conversion_read_done = true;          // ADC SPI is reading new data
+bool continuous_conversion_mode_enabled = false;    // Continuous Conversion Mode is enabled (new conversion trigger and read is triggered immediately after reading the last one)
+uint32_t voltage_latest_sample_mv;                  // latest VSEN ADC conversion result converted to mV
+uint32_t current_latest_sample_ma;                  // latest ISEN ADC conversion result converted to mA
+uint32_t load_voltage_mv = 0;                       // current load voltage [mV]. Updated by the vi_sense_task (averaged)
+uint32_t load_current_ma = 0;                       // current load current [mA]. Updated by the vi_sense_task (averaged)
+uint32_t sink_current[4] = {0};                     // current of individual current sink [mA]
+vsen_src_t vsen_src = VSEN_SRC_INTERNAL;            // voltage sense source (internal or remote)
+bool auto_vsen_src_enabled = false;                 // automatic switching of voltage sense source enabled
 
 //---- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36,8 +42,13 @@ void vi_sense_task(void) {
 
     // software slave management, 16bit format, master mode, baud divisor
     VSEN_ADC_SPI->CR1  = SPI_CR1_SSM | SPI_CR1_SSI | SPI_CR1_DFF | SPI_CR1_MSTR | VSEN_ADC_SPI_DIV;
-    VSEN_ADC_SPI->CR2  = 0;
+    VSEN_ADC_SPI->CR2  = SPI_CR2_RXNEIE;    // enable the RX buffer not empty interrupt
     VSEN_ADC_SPI->CR1 |= SPI_CR1_SPE;       // spi enable
+
+    // the SPI interrupt priority must be higher than the SVC interrupt priority so the SPI RXNEIE interrupt can preempt a kernel context switch
+    NVIC_SetPriority(SVCall_IRQn, 1);
+    NVIC_SetPriority(SPI5_IRQn, 0);
+    NVIC_EnableIRQ(SPI5_IRQn);
 
     //---- VOLTAGE SENSE ADC CONVST INIT -------------------------------------------------------------------------------------------------------------------------
 
@@ -83,29 +94,26 @@ void vi_sense_task(void) {
 
     // wait for the voltages to settle after power-up and perform first dummy read to trigger the next conversion
     kernel_sleep_ms(500);
-    __vsen_adc_read();
-    __isen_adc_read();
+    __read_latest_conversion_blocking();
+    __read_latest_conversion_blocking();
 
     while (1) {
 
-        static uint32_t vsen_sample_sum = 0;    // sum of unprocessed voltage samples
-        static uint32_t isen_sample_sum = 0;    // sum od unprocessed current samples
+        static uint32_t vsen_sample_sum = 0;    // sum of voltage samples
+        static uint32_t isen_sample_sum = 0;    // sum of current samples
         static uint8_t sample_count = 0;        // number of samples contained in the vsen and isen sample_sum
 
-        // get new samples
-        uint16_t vsen_latest_sample = __vsen_adc_read();
-        uint16_t isen_latest_sample = __isen_adc_read();
-        vsen_sample_sum += vsen_latest_sample;
-        isen_sample_sum += isen_latest_sample;
+        vsen_sample_sum += voltage_latest_sample_mv;
+        isen_sample_sum += current_latest_sample_ma;
         sample_count++;
 
         if (sample_count == 8) {
 
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-            // divide sample sum by sample count and convert to mV and mA
-            uint16_t vsen_new_value = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(vsen_sample_sum >> 3) : VSEN_ADC_CODE_TO_MV_REM(vsen_sample_sum >> 3);
-            uint16_t isen_new_value = ISEN_ADC_CODE_TO_MA(isen_sample_sum >> 3);
+            // divide sample sum by sample count
+            uint16_t vsen_new_value = vsen_sample_sum >> 3;
+            uint16_t isen_new_value = isen_sample_sum >> 3;
 
             // calculate a moving average for voltage
             if (load_voltage_mv > 0) load_voltage_mv = (load_voltage_mv + vsen_new_value) >> 1;
@@ -131,9 +139,9 @@ void vi_sense_task(void) {
             sample_count = 0;
 
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-            // handle automatic voltage sense source switching
-            if (auto_vsen_src_enabled) {
+            
+            // handle automatic voltage sense source switching (not allowed in continuous conversion mode)
+            if (auto_vsen_src_enabled && !continuous_conversion_mode_enabled) {
 
                 // if the current VSEN source is internal and load voltage is not 0, try sampling voltage with remote sense
                 // if the measured voltage is not zero, switch to remote sense
@@ -143,23 +151,28 @@ void vi_sense_task(void) {
 
                         // switch mux to remote sense and perform a dummy read to trigger a conversion with remote sense
                         gpio_write(VSEN_SRC_GPIO, HIGH);
-                        __vsen_adc_read();
 
-                        // wait for the conversion to finish
-                        for (volatile int i = 0; i < 10; i++);
+                        // read in last conversion and trigger the next one, then read in a conversion with Remote Sense on
+                        __read_latest_conversion_blocking();
+                        __read_latest_conversion_blocking();
 
                         // if the measured code is above threshold, switch to remote sense
-                        if (__vsen_adc_read() >= VI_SENSE_AUTO_VSENSRC_THRESHOLD_CODE) vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
+                        if (voltage_latest_sample_mv >= VI_SENSE_AUTO_VSENSRC_THRESHOLD_MV) vi_sense_set_vsen_source(VSEN_SRC_REMOTE);
                         else {
 
                             gpio_write(VSEN_SRC_GPIO, LOW);
-                            __vsen_adc_read();
+                            __read_latest_conversion_blocking();
                         }
                     }
 
                 // if the current VSEN source is remote and voltage is 0, switch to internal
-                } else if (vsen_latest_sample < VI_SENSE_AUTO_VSENSRC_THRESHOLD_CODE) vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
+                } else if (voltage_latest_sample_mv < VI_SENSE_AUTO_VSENSRC_THRESHOLD_MV) vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);
             }
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+            // get new samples
+            if (!continuous_conversion_mode_enabled) __read_latest_conversion();
 
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -203,6 +216,7 @@ void vi_sense_set_vsen_source(vsen_src_t source) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// enables or disables the automatic VSEN source switching feature
 void vi_sense_set_automatic_vsen_source(bool enable) {
 
     auto_vsen_src_enabled = enable;
@@ -211,46 +225,75 @@ void vi_sense_set_automatic_vsen_source(bool enable) {
     else cmd_clear_bit(CMD_ADDRESS_CONFIG, LOAD_CONFIG_AUTO_VSEN_SRC);
 }
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+// enables or disables the Continuous Conversion Mode (new conversion trigger and read is triggered immediately after reading the last one)
+void vi_sense_set_continuous_conversion_mode(bool enabled) {
+
+    continuous_conversion_mode_enabled = enabled;
+
+    if (enabled) {
+        
+        vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);        // Remote Sense is not allowed in Continuous Conversion Mode because the MUX switching would cause glitches in the digital feedback loop
+        __read_latest_conversion();                         // read last conversion (triggers the next one in Continuous Conversion Mode)
+    }
+}
+
 //---- INTERNAL FUNCTIONS ----------------------------------------------------------------------------------------------------------------------------------------
 
-// samples the load voltage using the external ADC
-uint16_t __vsen_adc_read(void) {
+// starts reading from the VSEN and ISEN ADCs simultaneously. The conversion_read_done flag will be raised after the read is complete.
+// Results are then available in the voltage_latest_sample_mv and current_latest_sample_ma variables
+void __read_latest_conversion(void) {
 
-    kernel_time_t start_time = kernel_get_time_ms();
+    if (!conversion_read_done) return;
 
     gpio_write(VSEN_ADC_SPI_SS_GPIO, LOW);
+    gpio_write(ISEN_ADC_SPI_SS_GPIO, LOW);
     spi_write(VSEN_ADC_SPI, 0x0000);
-    
-    while (!spi_tx_done(VSEN_ADC_SPI) && kernel_get_time_since(start_time) < 10);
-    gpio_write(VSEN_ADC_SPI_SS_GPIO, HIGH);
+    spi_write(ISEN_ADC_SPI, 0x0000);
 
-    // pulse the !CONVST (TRIG) pin to trigger next conversion
-    // no delay is needed, the pulse is about 60us, the datasheet minimum is 10us
-    gpio_write(VSEN_ADC_CONVST_GPIO, LOW);
-    gpio_write(VSEN_ADC_CONVST_GPIO, HIGH);
-
-    return (spi_read(VSEN_ADC_SPI) >> 4);       // the ADC is 12 bit and the SPI is 16bit; shift the value by 4 bits to get the right alignment
+    conversion_read_done = false;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-// samples the load current using the external ADC
-uint16_t __isen_adc_read(void) {
+// reads from the VSEN and ISEN ADCs simultaneously. Waits for the read to finish. Results are then available in the voltage_latest_sample_mv and current_latest_sample_ma variables
+void __read_latest_conversion_blocking(void) {
 
-    kernel_time_t start_time = kernel_get_time_ms();
+    __read_latest_conversion();
+    while (!conversion_read_done) kernel_yield();
+}
 
-    gpio_write(ISEN_ADC_SPI_SS_GPIO, LOW);
-    spi_write(ISEN_ADC_SPI, 0x0000);
+//---- IRQ HANDLERS ----------------------------------------------------------------------------------------------------------------------------------------------
 
-    while (!spi_tx_done(ISEN_ADC_SPI) && kernel_get_time_since(start_time) < 10);
-    gpio_write(ISEN_ADC_SPI_SS_GPIO, HIGH);
+// terminates SPI packet, triggers next conversion, stores data, initiates next conversion (for both ADCs simultaneously)
+void VSEN_ADC_SPI_HANDLER() {
 
-    // pulse the !CONVST (TRIG) pin to trigger next conversion
-    // no delay is needed, the pulse is about 60us, the datasheet minimum is 10us
-    gpio_write(ISEN_ADC_CONVST_GPIO, LOW);
-    gpio_write(ISEN_ADC_CONVST_GPIO, HIGH);
+    if (spi_rx_not_empty(VSEN_ADC_SPI)) {
 
-    return (spi_read(ISEN_ADC_SPI) >> 4);       // the ADC is 12 bit and the SPI is 16bit; shift the value by 4 bits to get the right alignment
+        // pull SS of both ADCs high
+        gpio_write(VSEN_ADC_SPI_SS_GPIO, HIGH);
+        gpio_write(ISEN_ADC_SPI_SS_GPIO, HIGH);
+
+        // pulse the !CONVST (TRIG) pin to trigger next conversion
+        gpio_write(VSEN_ADC_CONVST_GPIO, LOW);
+        gpio_write(ISEN_ADC_CONVST_GPIO, LOW);
+        gpio_write(VSEN_ADC_CONVST_GPIO, HIGH);
+        gpio_write(ISEN_ADC_CONVST_GPIO, HIGH);
+
+        // the ADC is 12 bit and the SPI is 16bit; shift the value by 4 bits to get the right alignment
+        uint16_t voltage_code = (spi_read(VSEN_ADC_SPI) >> 4);
+        uint16_t current_code = (spi_read(ISEN_ADC_SPI) >> 4);  
+
+        voltage_latest_sample_mv = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(voltage_code) : VSEN_ADC_CODE_TO_MV_REM(voltage_code);
+        current_latest_sample_ma = ISEN_ADC_CODE_TO_MA(current_code);
+
+        conversion_read_done = true;
+
+        load_update_pid(voltage_latest_sample_mv, current_latest_sample_ma);
+
+        if (continuous_conversion_mode_enabled) __read_latest_conversion();
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------

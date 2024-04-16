@@ -54,7 +54,7 @@
 
 #define INTERNAL_ISEN_MIN_CURRENT 50     // lowest measured current of a single current sink (samples less than this will be equal to 0 mA)
 
-#define VI_SENSE_AUTO_VSENSRC_THRESHOLD_CODE    10   // threshold ADC code for switching back to internal source from remote sense
+#define VI_SENSE_AUTO_VSENSRC_THRESHOLD_MV    100   // threshold meassured voltage for automatic switching of VSEN source [mV]
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
