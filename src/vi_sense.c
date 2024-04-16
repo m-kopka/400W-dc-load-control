@@ -17,6 +17,7 @@ uint32_t voltage_latest_sample_mv;                  // latest VSEN ADC conversio
 uint32_t current_latest_sample_ma;                  // latest ISEN ADC conversion result converted to mA
 uint32_t load_voltage_mv = 0;                       // current load voltage [mV]. Updated by the vi_sense_task (averaged)
 uint32_t load_current_ma = 0;                       // current load current [mA]. Updated by the vi_sense_task (averaged)
+uint32_t load_power_mw = 0;                         // current load power [mW]. Updated by the vi_sense_task (averaged)
 uint32_t sink_current[4] = {0};                     // current of individual current sink [mA]
 vsen_src_t vsen_src = VSEN_SRC_INTERNAL;            // voltage sense source (internal or remote)
 bool auto_vsen_src_enabled = false;                 // automatic switching of voltage sense source enabled
@@ -123,16 +124,29 @@ void vi_sense_task(void) {
             if (load_current_ma > 0) load_current_ma = (load_current_ma + isen_new_value) >> 1;
             else load_current_ma = isen_new_value;
 
-            // round to 50mV / 50mA
+            load_power_mw = load_voltage_mv * load_current_ma / 1000;
+
+            // round to 50mV / 50mA / 100 mW
             load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
             load_current_ma = (load_current_ma + 25) / 50 * 50;
+            load_power_mw = (load_power_mw + 50) / 100 * 100;
 
-            if (load_voltage_mv < VI_SENSE_MIN_VOLTAGE) load_voltage_mv = 0;
-            if (load_current_ma < VI_SENSE_MIN_CURRENT) load_current_ma = 0;
+            if (load_voltage_mv < VI_SENSE_MIN_VOLTAGE) {
+                
+                load_voltage_mv = 0;
+                load_power_mw = 0;
+            }
+
+            if (load_current_ma < VI_SENSE_MIN_CURRENT){
+                
+                load_current_ma = 0;
+                load_power_mw = 0;
+            }
 
             // update registers
             cmd_write(CMD_ADDRESS_VOLTAGE, load_voltage_mv / 10);
             cmd_write(CMD_ADDRESS_CURRENT, load_current_ma);
+            cmd_write(CMD_ADDRESS_POWER, load_power_mw / 100);
 
             vsen_sample_sum = 0;
             isen_sample_sum = 0;

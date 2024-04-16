@@ -66,6 +66,15 @@ static inline uint32_t vi_sense_get_current(void) {
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+// returns current load power [mW]
+static inline uint32_t vi_sense_get_power(void) {
+
+    extern uint32_t load_power_mw;
+    return (load_power_mw);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 // returns the current of a individual current sink [mA]
 static inline uint32_t vi_sense_get_sink_current(internal_isen_t sink) {
 
