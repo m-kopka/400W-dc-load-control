@@ -11,7 +11,7 @@ void load_update_pid(uint32_t voltage, uint32_t current);
 
 //---- INTERNAL DATA ---------------------------------------------------------------------------------------------------------------------------------------------
 
-volatile bool conversion_read_done = true;          // ADC SPI is reading new data
+volatile bool conversion_read_started = false;      // ADC SPI is reading new data
 bool continuous_conversion_mode_enabled = false;    // Continuous Conversion Mode is enabled (new conversion trigger and read is triggered immediately after reading the last one)
 uint32_t voltage_latest_sample_mv;                  // latest VSEN ADC conversion result converted to mV
 uint32_t current_latest_sample_ma;                  // latest ISEN ADC conversion result converted to mA
@@ -188,7 +188,7 @@ void vi_sense_task(void) {
             // get new samples
             if (!continuous_conversion_mode_enabled) {
                 
-                while (!conversion_read_done);
+                while (conversion_read_started) kernel_yield();
                 __read_latest_conversion();
             }
 
@@ -254,7 +254,7 @@ void vi_sense_set_continuous_conversion_mode(bool enabled) {
         
         vi_sense_set_vsen_source(VSEN_SRC_INTERNAL);        // Remote Sense is not allowed in Continuous Conversion Mode because the MUX switching would cause glitches in the digital feedback loop
         
-        while(!conversion_read_done) kernel_yield();
+        while(conversion_read_started) kernel_yield();
         __read_latest_conversion();                         // read last conversion (triggers the next one in Continuous Conversion Mode)
     }
 }
@@ -265,14 +265,12 @@ void vi_sense_set_continuous_conversion_mode(bool enabled) {
 // Results are then available in the voltage_latest_sample_mv and current_latest_sample_ma variables
 void __read_latest_conversion(void) {
 
-    if (!conversion_read_done) return;
+    conversion_read_started = true;     // set the flag first in case the program jumps to an ISR after the spi write and the read finishes before reaching the end of this function
 
     gpio_write(VSEN_ADC_SPI_SS_GPIO, LOW);
     gpio_write(ISEN_ADC_SPI_SS_GPIO, LOW);
     spi_write(VSEN_ADC_SPI, 0x0000);
     spi_write(ISEN_ADC_SPI, 0x0000);
-
-    conversion_read_done = false;
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -281,7 +279,7 @@ void __read_latest_conversion(void) {
 void __read_latest_conversion_blocking(void) {
 
     __read_latest_conversion();
-    while (!conversion_read_done) kernel_yield();
+    while (conversion_read_started) kernel_yield();
 }
 
 //---- IRQ HANDLERS ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -308,7 +306,7 @@ void VSEN_ADC_SPI_HANDLER() {
         voltage_latest_sample_mv = (vsen_src == VSEN_SRC_INTERNAL) ? VSEN_ADC_CODE_TO_MV_INT(voltage_code) : VSEN_ADC_CODE_TO_MV_REM(voltage_code);
         current_latest_sample_ma = ISEN_ADC_CODE_TO_MA(current_code);
 
-        conversion_read_done = true;
+        conversion_read_started = false;
 
         load_update_pid(voltage_latest_sample_mv, current_latest_sample_ma);
 
