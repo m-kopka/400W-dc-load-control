@@ -136,7 +136,7 @@ void vi_sense_task(void) {
                 // divide sample sum by sample count and calculate moving average
                 load_power_mw = (load_power_mw + (power_sample_sum >> 3)) >> 1;
 
-                if (load_current_ma > 5000) load_power_mw = (load_power_mw + 500) / 1000 * 1000;
+                if (load_power_mw > 80000) load_power_mw = (load_power_mw + 500) / 1000 * 1000;
                 else load_power_mw = (load_power_mw + 250) / 500 * 500;
 
                 power_sample_sum = 0;

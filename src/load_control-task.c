@@ -72,7 +72,7 @@ void load_control_task(void) {
 
             uint32_t load_voltage_mv = vi_sense_get_voltage();
             uint32_t load_current_ma = vi_sense_get_current();
-            uint32_t load_power_mw = vi_sense_get_power();
+            uint32_t load_power_mw = load_voltage_mv * load_current_ma / 1000;
 
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
