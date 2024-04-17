@@ -13,11 +13,11 @@ void load_update_pid(uint32_t voltage, uint32_t current);
 
 volatile bool conversion_read_started = false;      // ADC SPI is reading new data
 bool continuous_conversion_mode_enabled = false;    // Continuous Conversion Mode is enabled (new conversion trigger and read is triggered immediately after reading the last one)
-uint32_t voltage_latest_sample_mv;                  // latest VSEN ADC conversion result converted to mV
-uint32_t current_latest_sample_ma;                  // latest ISEN ADC conversion result converted to mA
-uint32_t load_voltage_mv = 0;                       // current load voltage [mV]. Updated by the vi_sense_task (averaged)
-uint32_t load_current_ma = 0;                       // current load current [mA]. Updated by the vi_sense_task (averaged)
-uint32_t load_power_mw = 0;                         // current load power [mW]. Updated by the vi_sense_task (averaged)
+int32_t voltage_latest_sample_mv;                  // latest VSEN ADC conversion result converted to mV
+int32_t current_latest_sample_ma;                  // latest ISEN ADC conversion result converted to mA
+int32_t load_voltage_mv = 0;                       // current load voltage [mV]. Updated by the vi_sense_task (averaged)
+int32_t load_current_ma = 0;                       // current load current [mA]. Updated by the vi_sense_task (averaged)
+int32_t load_power_mw = 0;                         // current load power [mW]. Updated by the vi_sense_task (averaged)
 uint32_t sink_current[4] = {0};                     // current of individual current sink [mA]
 vsen_src_t vsen_src = VSEN_SRC_INTERNAL;            // voltage sense source (internal or remote)
 bool auto_vsen_src_enabled = false;                 // automatic switching of voltage sense source enabled
@@ -100,9 +100,11 @@ void vi_sense_task(void) {
 
     while (1) {
 
-        static uint32_t vsen_sample_sum = 0;    // sum of voltage samples
-        static uint32_t isen_sample_sum = 0;    // sum of current samples
+        static int32_t vsen_sample_sum = 0;     // sum of voltage samples
+        static int32_t isen_sample_sum = 0;     // sum of current samples
+        static int32_t power_sample_sum = 0;    // sum of previous power results
         static uint8_t sample_count = 0;        // number of samples contained in the vsen and isen sample_sum
+        static uint8_t power_sample_count = 0;
 
         vsen_sample_sum += voltage_latest_sample_mv;
         isen_sample_sum += current_latest_sample_ma;
@@ -113,8 +115,8 @@ void vi_sense_task(void) {
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
             // divide sample sum by sample count
-            uint16_t vsen_new_value = vsen_sample_sum >> 3;
-            uint16_t isen_new_value = isen_sample_sum >> 3;
+            int32_t vsen_new_value = vsen_sample_sum >> 3;
+            int32_t isen_new_value = isen_sample_sum >> 3;
 
             // calculate a moving average for voltage
             if (load_voltage_mv > 0) load_voltage_mv = (load_voltage_mv + vsen_new_value) >> 1;
@@ -124,12 +126,34 @@ void vi_sense_task(void) {
             if (load_current_ma > 0) load_current_ma = (load_current_ma + isen_new_value) >> 1;
             else load_current_ma = isen_new_value;
 
-            load_power_mw = load_voltage_mv * load_current_ma / 1000;
+            // add power calculation to sample sum
+            int32_t power_sample = load_voltage_mv * load_current_ma / 1000;
+            power_sample_sum += power_sample;
+            power_sample_count++;
 
-            // round to 50mV / 50mA / 100 mW
-            load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
-            load_current_ma = (load_current_ma + 25) / 50 * 50;
-            load_power_mw = (load_power_mw + 50) / 100 * 100;
+            if (power_sample_count == 8) {
+
+                // divide sample sum by sample count and calculate moving average
+                load_power_mw = (load_power_mw + (power_sample_sum >> 3)) >> 1;
+
+                if (load_current_ma > 5000) load_power_mw = (load_power_mw + 500) / 1000 * 1000;
+                else load_power_mw = (load_power_mw + 250) / 500 * 500;
+
+                power_sample_sum = 0;
+                power_sample_count = 0;
+            }
+
+            // round to 100mV / 100mA
+            if (load_current_ma > 5000) {
+                
+                load_voltage_mv = (load_voltage_mv + 50) / 100 * 100;
+                load_current_ma = (load_current_ma + 50) / 100 * 100;
+
+            } else {    // round to 50mV, 50mA
+                
+                load_voltage_mv = (load_voltage_mv + 25) / 50 * 50;
+                load_current_ma = (load_current_ma + 25) / 50 * 50;
+            }
 
             if (load_voltage_mv < VI_SENSE_MIN_VOLTAGE) {
                 

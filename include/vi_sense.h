@@ -51,7 +51,7 @@ static inline vsen_src_t vi_sense_get_vsen_source(void) {
 // returns current load voltage [mV]
 static inline uint32_t vi_sense_get_voltage(void) {
 
-    extern uint32_t load_voltage_mv;
+    extern int32_t load_voltage_mv;
     return (load_voltage_mv);
 }
 
@@ -60,7 +60,7 @@ static inline uint32_t vi_sense_get_voltage(void) {
 // returns current load current [mA]
 static inline uint32_t vi_sense_get_current(void) {
 
-    extern uint32_t load_current_ma;
+    extern int32_t load_current_ma;
     return (load_current_ma);
 }
 
@@ -69,7 +69,7 @@ static inline uint32_t vi_sense_get_current(void) {
 // returns current load power [mW]
 static inline uint32_t vi_sense_get_power(void) {
 
-    extern uint32_t load_power_mw;
+    extern int32_t load_power_mw;
     return (load_power_mw);
 }
 
