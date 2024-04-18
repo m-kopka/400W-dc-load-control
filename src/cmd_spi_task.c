@@ -50,6 +50,15 @@ void load_cmd_task(void) {
 
                     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+                    // Load Fault register
+                    case CMD_ADDRESS_FAULT: {
+
+                        load_clear_fault(data);     // writing the bit into the fault register clears the fault
+
+                    } break;
+
+                    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
                     // Load Fault Mask register
                     case CMD_ADDRESS_FAULT_MASK: {
 

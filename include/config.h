@@ -36,9 +36,9 @@
 #define LOAD_OCP_THRESHOLD_MA       45000   // if the load current is higher than this value, OCP fault is triggered
 #define LOAD_OPP_THRESHOLD_MW       430000  // if the load power is higher than this value, OPP fault is triggered
 #define LOAD_NO_REG_THRESHOLD_CC    200     // if the current difference in CC mode is higher than this value NO_REG flag will be raised
-#define LOAD_NO_REG_THRESHOLD_CV    500     // if the voltage difference in CV mode is higher than this value NO_REG flag will be raised
-#define LOAD_NO_REG_THRESHOLD_CR    1000    // if the resistance difference in CR mode is higher than this value NO_REG flag will be raised
-#define LOAD_NO_REG_THRESHOLD_CP    1000    // if the power difference in CP mode is higher than this value NO_REG flag will be raised
+#define LOAD_NO_REG_THRESHOLD_CV    1000    // if the voltage difference in CV mode is higher than this value NO_REG flag will be raised
+#define LOAD_NO_REG_THRESHOLD_CR    10000   // if the resistance difference in CR mode is higher than this value NO_REG flag will be raised
+#define LOAD_NO_REG_THRESHOLD_CP    10000   // if the power difference in CP mode is higher than this value NO_REG flag will be raised
 
 #define LOAD_NO_REG_CUMULATIVE_COUNTS       16   // NO_REG flag will be raised after n cumulative no reg events
 #define LOAD_FUSE_FAULT_CUMULATIVE_COUNTS   16  // FUSE fault will be triggered after n cumulative faults
