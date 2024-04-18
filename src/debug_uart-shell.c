@@ -271,7 +271,7 @@ void shell_update(char *buffer) {
         shell_assert_argc(1);
         int current = atoi(args[1]);
 
-        if (current >= LOAD_MIN_CURRENT_MA && current <= LOAD_MAX_CURRENT_MA) {
+        if (current >= LOAD_MIN_CC_LEVEL_MA && current <= LOAD_MAX_CC_LEVEL_MA) {
 
             load_set_cc_level((uint16_t)current);
 
@@ -282,9 +282,9 @@ void shell_update(char *buffer) {
         } else {
 
             debug_print("(!) iset range is <");
-            debug_print_int(LOAD_MIN_CURRENT_MA);
+            debug_print_int(LOAD_MIN_CC_LEVEL_MA);
             debug_print(" - ");
-            debug_print_int(LOAD_MAX_CURRENT_MA);
+            debug_print_int(LOAD_MAX_CC_LEVEL_MA);
             debug_print(">.\n");
         }
     }
@@ -297,7 +297,7 @@ void shell_update(char *buffer) {
         shell_assert_argc(1);
         int voltage = atoi(args[1]);
 
-        if (voltage >= 1000 && voltage <= 800000) {
+        if (voltage >= LOAD_MIN_CV_LEVEL_MV && voltage <= LOAD_MAX_CV_LEVEL_MV) {
 
             load_set_cv_level((uint32_t)voltage);
 
@@ -308,9 +308,9 @@ void shell_update(char *buffer) {
         } else {
 
             debug_print("(!) vset range is <");
-            debug_print_int(1000);
+            debug_print_int(LOAD_MIN_CV_LEVEL_MV);
             debug_print(" - ");
-            debug_print_int(800000);
+            debug_print_int(LOAD_MAX_CV_LEVEL_MV);
             debug_print(">.\n");
         }
     }
@@ -323,7 +323,7 @@ void shell_update(char *buffer) {
         shell_assert_argc(1);
         int resistance = atoi(args[1]);
 
-        if (resistance >= 1 && resistance <= 1000000) {
+        if (resistance >= LOAD_MIN_CR_LEVEL_MR && resistance <= LOAD_MAX_CR_LEVEL_MR) {
 
             load_set_cr_level((uint32_t)resistance);
 
@@ -334,9 +334,9 @@ void shell_update(char *buffer) {
         } else {
 
             debug_print("(!) rset range is <");
-            debug_print_int(1);
+            debug_print_int(LOAD_MIN_CR_LEVEL_MR);
             debug_print(" - ");
-            debug_print_int(1000);
+            debug_print_int(LOAD_MAX_CR_LEVEL_MR);
             debug_print(">.\n");
         }
     }
@@ -349,7 +349,7 @@ void shell_update(char *buffer) {
         shell_assert_argc(1);
         int power = atoi(args[1]);
 
-        if (power >= 1000 && power <= 400000) {
+        if (power >= LOAD_MIN_CP_LEVEL_MW && power <= LOAD_MAX_CP_LEVEL_MW) {
 
             load_set_cp_level((uint32_t)power);
 
@@ -360,9 +360,9 @@ void shell_update(char *buffer) {
         } else {
 
             debug_print("(!) pset range is <");
-            debug_print_int(1000);
+            debug_print_int(LOAD_MIN_CP_LEVEL_MW);
             debug_print(" - ");
-            debug_print_int(400000);
+            debug_print_int(LOAD_MAX_CP_LEVEL_MW);
             debug_print(">.\n");
         }
     }
@@ -455,7 +455,7 @@ void shell_update(char *buffer) {
         shell_assert_argc(1);
         int voltage = atoi(args[1]);
 
-        if (voltage >= 0 && voltage <= 100000) {
+        if (voltage >= LOAD_MIN_CV_LEVEL_MV && voltage <= LOAD_MAX_CV_LEVEL_MV) {
 
             load_set_discharge_voltage((uint32_t)voltage);
 
@@ -542,6 +542,9 @@ void shell_update(char *buffer) {
         debug_print("faultmask <0000 - ffff> - set a fault mask\n");
         debug_print("en <1 or 0> - enables or disables the load\n");
         debug_print("iset <current_ma> - set the load CC level\n");
+        debug_print("vset <voltage_mv> - set the load CV level\n");
+        debug_print("rset <resistance_mr> - set the load CR level\n");
+        debug_print("pset <power_mw> - set the load CP level\n");
         debug_print("vsen - read the load input voltage\n");
         kernel_sleep_ms(50);
         debug_print("isen - read the total load current\n");

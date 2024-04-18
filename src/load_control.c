@@ -40,8 +40,8 @@ bool load_set_enable(bool state) {
 
     if (state) {    // enable the load
 
-        // set the minimum current level, enable the power boards and slowly increase the current to CC level
-        iset_dac_set_current(LOAD_MIN_CURRENT_MA, false);
+        // enable the power boards and slowly increase the current to CC level
+        iset_dac_write_code(0xffff);
         gpio_write(LOAD_EN_L_GPIO, HIGH);
         gpio_write(LOAD_EN_R_GPIO, HIGH);
 
@@ -105,8 +105,8 @@ void load_set_mode(load_mode_t mode) {
 void load_set_cc_level(uint32_t current_ma) {
 
     // check limits
-    if (current_ma < LOAD_MIN_CURRENT_MA) current_ma = LOAD_MIN_CURRENT_MA;
-    if (current_ma > LOAD_MAX_CURRENT_MA) current_ma = LOAD_MAX_CURRENT_MA;
+    if (current_ma < LOAD_MIN_CC_LEVEL_MA) current_ma = LOAD_MIN_CC_LEVEL_MA;
+    if (current_ma > LOAD_MAX_CC_LEVEL_MA) current_ma = LOAD_MAX_CC_LEVEL_MA;
 
     if (enabled) iset_dac_set_current(current_ma, true);    // if the load is enabled write new value to the I_SET dac with a slew rate limit
 
@@ -120,8 +120,8 @@ void load_set_cc_level(uint32_t current_ma) {
 void load_set_cv_level(uint32_t voltage_mv) {
 
     // check limits
-    if (voltage_mv < 1000) voltage_mv = 1000;
-    if (voltage_mv > 80000) voltage_mv = 800000;
+    if (voltage_mv < LOAD_MIN_CV_LEVEL_MV) voltage_mv = LOAD_MIN_CV_LEVEL_MV;
+    if (voltage_mv > LOAD_MAX_CV_LEVEL_MV) voltage_mv = LOAD_MAX_CV_LEVEL_MV;
 
     cv_level_mv = voltage_mv;
     cmd_write(CMD_ADDRESS_CV_LEVEL, voltage_mv / 10);        // update the register
@@ -133,8 +133,8 @@ void load_set_cv_level(uint32_t voltage_mv) {
 void load_set_cr_level(uint32_t resistance_mohm) {
 
     // check limits
-    if (resistance_mohm < 1) resistance_mohm = 1;
-    if (resistance_mohm > 1000000) resistance_mohm = 1000000;
+    if (resistance_mohm < LOAD_MIN_CR_LEVEL_MR) resistance_mohm = LOAD_MIN_CR_LEVEL_MR;
+    if (resistance_mohm > LOAD_MAX_CR_LEVEL_MR) resistance_mohm = LOAD_MAX_CR_LEVEL_MR;
 
     cr_level_mr = resistance_mohm;
     cmd_write(CMD_ADDRESS_CR_LEVEL, resistance_mohm);        // update the register
@@ -146,8 +146,8 @@ void load_set_cr_level(uint32_t resistance_mohm) {
 void load_set_cp_level(uint32_t power_mw) {
 
     // check limits
-    if (power_mw < 1000) power_mw = 1000;
-    if (power_mw > 400000) power_mw = 400000;
+    if (power_mw < LOAD_MIN_CP_LEVEL_MW) power_mw = LOAD_MIN_CP_LEVEL_MW;
+    if (power_mw > LOAD_MAX_CP_LEVEL_MW) power_mw = LOAD_MAX_CP_LEVEL_MW;
 
     cp_level_uw = power_mw * 1000;
     cmd_write(CMD_ADDRESS_CP_LEVEL, power_mw / 100);        // update the register
@@ -158,8 +158,12 @@ void load_set_cp_level(uint32_t power_mw) {
 // sets the discharge threshold voltage; if the load voltage drops bellow this value, the load is automatically disabled
 void load_set_discharge_voltage(uint32_t voltage_mv) {
 
+    // check limits
+    if (voltage_mv < LOAD_MIN_CV_LEVEL_MV) voltage_mv = LOAD_MIN_CV_LEVEL_MV;
+    if (voltage_mv > LOAD_MAX_CV_LEVEL_MV) voltage_mv = LOAD_MAX_CV_LEVEL_MV;
+
     discharge_voltage_mv = voltage_mv;
-    cmd_write(CMD_ADDRESS_DISCH_LEVEL, voltage_mv);
+    cmd_write(CMD_ADDRESS_DISCH_LEVEL, voltage_mv / 10);
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

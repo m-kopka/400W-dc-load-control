@@ -27,10 +27,21 @@
 
 //---- LOAD CONTROL ----------------------------------------------------------------------------------------------------------------------------------------------
 
-#define LOAD_MIN_CURRENT_MA     300     // minimum CC level allowed [mA]
-#define LOAD_MAX_CURRENT_MA     42000   // maximum CC level allowed [mA]
+#define LOAD_MIN_CC_LEVEL_MA    300     // minimum CC level allowed [mA]
+#define LOAD_MAX_CC_LEVEL_MA    42000   // maximum CC level allowed [mA]
+#define LOAD_MIN_CV_LEVEL_MV    0       // minimum CV level allowed [mV]
+#define LOAD_MAX_CV_LEVEL_MV    70000   // maximum CV level allowed [mV]
+#define LOAD_MIN_CR_LEVEL_MR    0       // minimum CP level allowed [mOhm]
+#define LOAD_MAX_CR_LEVEL_MR    100000  // maximum CP level allowed [mOhm]
+#define LOAD_MIN_CP_LEVEL_MW    10      // minimum CW level allowed [mW]
+#define LOAD_MAX_CP_LEVEL_MW    400000  // maximum CW level allowed [mW]
 
-#define LOAD_AVAILABLE_CURRENT_A    (LOAD_MAX_CURRENT_MA / 1000)    // available current advertized to the master [A]
+#define LOAD_START_CC_LEVEL_MA      1000    // CC level on startup [mA]
+#define LOAD_START_CV_LEVEL_MV      5000    // CV level on startup [mV]
+#define LOAD_START_CR_LEVEL_MR      10000   // CR level on startup [mOhm]
+#define LOAD_START_CP_LEVEL_MW      50000   // CP level on startup [mW]
+
+#define LOAD_AVAILABLE_CURRENT_A    (LOAD_MAX_CC_LEVEL_MA / 1000)    // available current advertized to the master [A]
 #define LOAD_AVAILABLE_POWER_W      420                             // available power advertized to the master [W]
 
 #define LOAD_OCP_THRESHOLD_MA       45000   // if the load current is higher than this value, OCP fault is triggered
@@ -44,7 +55,6 @@
 #define LOAD_FUSE_FAULT_CUMULATIVE_COUNTS   16  // FUSE fault will be triggered after n cumulative faults
 
 #define LOAD_CONTROL_UPDATE_PERIOD_MS   100     // time period for checking the OPP and OCP state and updating load statistics [ms]
-#define LOAD_START_CC_LEVEL_MA          1000    // CC level on startup [mA]
 
 //---- ISET DAC --------------------------------------------------------------------------------------------------------------------------------------------------
 

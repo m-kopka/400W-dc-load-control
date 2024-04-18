@@ -126,7 +126,7 @@ void load_cmd_task(void) {
                     // Load Discharge Voltage register
                     case CMD_ADDRESS_DISCH_LEVEL: {
 
-                        load_set_discharge_voltage(data);
+                        load_set_discharge_voltage(data * 10);
 
                     } break;
 

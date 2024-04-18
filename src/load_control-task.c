@@ -59,9 +59,9 @@ void load_control_task(void) {
     load_set_fault_mask(LOAD_DEFAULT_FAULT_MASK);
     load_set_mode(LOAD_MODE_CC);
     load_set_cc_level(LOAD_START_CC_LEVEL_MA);
-    load_set_cv_level(5000);
-    load_set_cr_level(100);
-    load_set_cp_level(100000);
+    load_set_cv_level(LOAD_START_CV_LEVEL_MV);
+    load_set_cr_level(LOAD_START_CR_LEVEL_MR);
+    load_set_cp_level(LOAD_START_CP_LEVEL_MW);
 
     cmd_write(CMD_ADDRESS_AVLBL_CURRENT, LOAD_AVAILABLE_CURRENT_A);
     cmd_write(CMD_ADDRESS_AVLBL_POWER, LOAD_AVAILABLE_POWER_W);
@@ -147,7 +147,7 @@ void load_control_task(void) {
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
             // check for fuse faults
-            if (load_current_ma > LOAD_MIN_CURRENT_MA && !iset_dac_is_in_transient()) {
+            if (load_current_ma > LOAD_MIN_CC_LEVEL_MA && !iset_dac_is_in_transient()) {
 
                 static uint8_t fuse_fault_cumulative_counter[4] = {0};
 
