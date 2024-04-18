@@ -108,7 +108,7 @@ void load_cmd_task(void) {
                     // Load CR Level register
                     case CMD_ADDRESS_CR_LEVEL: {
 
-                        load_set_cr_level(data);
+                        load_set_cr_level(data * 10);
 
                     } break;
 

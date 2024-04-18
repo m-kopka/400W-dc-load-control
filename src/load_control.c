@@ -137,7 +137,7 @@ void load_set_cr_level(uint32_t resistance_mohm) {
     if (resistance_mohm > LOAD_MAX_CR_LEVEL_MR) resistance_mohm = LOAD_MAX_CR_LEVEL_MR;
 
     cr_level_mr = resistance_mohm;
-    cmd_write(CMD_ADDRESS_CR_LEVEL, resistance_mohm);        // update the register
+    cmd_write(CMD_ADDRESS_CR_LEVEL, resistance_mohm / 10);        // update the register
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
